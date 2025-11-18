@@ -47,7 +47,7 @@ export class AuthController {
 
       return res.status(201).json({
         message: "User registered. Please verify your email.",
-        userId: user._id
+        user
       });
     } catch (err) {
       console.error(err);
@@ -78,7 +78,7 @@ export class AuthController {
       user.refreshTokens.push(refreshToken);
       await user.save();
 
-      return res.json({ accessToken, refreshToken, user });
+      return res.json({ accessToken, refreshToken, user  });
     } catch (err) {
       return res.status(500).json({ error: "Login failed" });
     }
@@ -171,7 +171,7 @@ static async resetPassword(req: Request, res: Response) {
 
     await PasswordResetToken.deleteMany({ userId: user._id });
 
-    return res.json({ message: "Password updated successfully" });
+    return res.json({ message: "Password reset successfully" });
   } catch (err) {
     return res.status(500).json({ error: "Could not reset password" });
   }
