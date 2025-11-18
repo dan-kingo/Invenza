@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { errorHandler } from "./middlewares/error.middleware.js";
 import healthRoutes from "./routes/health.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 const app = express();
 
 // Middlewares
@@ -15,6 +16,7 @@ app.use(morgan("dev"));
 
 // Routes
 app.use ("/", healthRoutes);
+app.use("/api/auth", authRoutes);
 // Error handler (should be last)
 app.use(errorHandler);
 
