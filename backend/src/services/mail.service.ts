@@ -23,3 +23,18 @@ export async function sendVerificationEmail(email: string, token: string) {
     `
   });
 }
+
+export async function sendPasswordResetEmail(email: string, token: string) {
+  const link = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+  await mailer.sendMail({
+    to: email,
+    subject: "Reset Your Invenza Password",
+    html: `
+      <h2>Reset Your Password</h2>
+      <p>You requested to reset your Invenza password.</p>
+      <a href="${link}">Click here to reset</a>
+      <p>This link expires in 15 minutes.</p>
+    `
+  });
+}

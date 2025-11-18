@@ -7,7 +7,8 @@ import {
   generateAccessToken,
   generateRefreshToken
 } from "../services/jwt.service";
-import { sendVerificationEmail } from "../services/mail.service";
+import { sendPasswordResetEmail, sendVerificationEmail } from "../services/mail.service";
+import { PasswordResetToken } from "../models/PasswordResetToken";
 
 export class AuthController {
   // REGISTER
@@ -129,4 +130,71 @@ export class AuthController {
 
     return res.json({ message: "Logged out" });
   }
+
+  static async forgotPassword(req: Request, res: Response) {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.json({ message: "If this email exists, a reset link was sent." });
+    }
+
+    const token = crypto.randomBytes(30).toString("hex");
+
+    await PasswordResetToken.create({
+      userId: user._id,
+      token,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
+    });
+
+    await sendPasswordResetEmail(email, token);
+
+    return res.json({ message: "Password reset link sent to email." });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to send password reset email" });
+  }
+}
+static async resetPassword(req: Request, res: Response) {
+  try {
+    const { token, newPassword } = req.body;
+
+    const record = await PasswordResetToken.findOne({ token });
+    if (!record) return res.status(400).json({ error: "Invalid or expired token" });
+
+    const user = await User.findById(record.userId);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    user.passwordHash = await hashPassword(newPassword);
+    await user.save();
+
+    await PasswordResetToken.deleteMany({ userId: user._id });
+
+    return res.json({ message: "Password updated successfully" });
+  } catch (err) {
+    return res.status(500).json({ error: "Could not reset password" });
+  }
+}
+static async changePassword(req: Request, res: Response) {
+  try {
+    const user = await User.findById(req.user?.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const { oldPassword, newPassword } = req.body;
+
+    if (!user.passwordHash)
+      return res.status(400).json({ error: "Your account uses social login" });
+
+    const isMatch = await comparePassword(oldPassword, user.passwordHash);
+    if (!isMatch) return res.status(400).json({ error: "Incorrect old password" });
+
+    user.passwordHash = await hashPassword(newPassword);
+    await user.save();
+
+    return res.json({ message: "Password changed successfully" });
+  } catch (err) {
+    return res.status(500).json({ error: "Could not change password" });
+  }
+}
 }
