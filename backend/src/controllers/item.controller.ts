@@ -4,6 +4,7 @@ import { Tag } from "../models/Tag";
 import { InventoryEvent } from "../models/InventoryEvent";
 import { User } from "../models/User";
 import { uploadToCloudinary } from "../services/cloudinary.service";
+import { AlertService } from "../services/alert.service";
 
 export class ItemController {
   static async createItem(req: Request, res: Response) {
@@ -73,6 +74,8 @@ export class ItemController {
           reason: "Initial stock"
         });
       }
+
+      await AlertService.checkItemThreshold(item._id, businessId, item.quantity);
 
       return res.status(201).json({
         message: "Item created successfully",
@@ -256,6 +259,8 @@ export class ItemController {
         action,
         reason
       });
+
+      await AlertService.checkItemThreshold(item._id, user.businessId, newQuantity);
 
       return res.json({
         message: "Quantity adjusted successfully",

@@ -4,6 +4,7 @@ import { Item } from "../models/Item";
 import { Tag } from "../models/Tag";
 import { Business } from "../models/Business";
 import { InventoryEvent } from "../models/InventoryEvent";
+import { AlertService } from "./alert.service";
 
 interface ClientOperation {
   opId: string;
@@ -154,6 +155,8 @@ export class SyncService {
       action: action || "adjusted",
       reason: reason || "Sync operation"
     });
+
+    await AlertService.checkItemThreshold(item._id, businessId, newQuantity);
 
     const syncOp = await SyncOp.create({
       opId: op.opId,
