@@ -8,6 +8,7 @@ import authRoutes from "./routes/auth.routes.js";
 import businessRoutes from "./routes/business.routes.js";
 import tagRoutes from "./routes/tag.routes.js";
 import itemRoutes from "./routes/item.routes.js";
+import syncRoutes from "./routes/sync.routes.js";
 const app = express();
 
 // Middlewares
@@ -23,6 +24,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/business", businessRoutes);
 app.use("/api/tags", tagRoutes);
 app.use("/api/items", itemRoutes);
+app.use("/api/sync", syncRoutes);
 // Error handler (should be last)
 app.use(errorHandler);
 
