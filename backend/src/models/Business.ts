@@ -6,6 +6,10 @@ export interface IBusiness extends Document {
   contactPhone?: string;
   language: "en" | "am" | "om";
   verificationDocs: string[];
+  status: "pending" | "approved" | "rejected" | "suspended";
+  rejectionReason?: string;
+  approvedBy?: mongoose.Types.ObjectId;
+  approvedAt?: Date;
 }
 
 const businessSchema = new Schema<IBusiness>(
@@ -16,7 +20,16 @@ const businessSchema = new Schema<IBusiness>(
 
     language: { type: String, enum: ["en", "am", "om"], default: "en" },
 
-    verificationDocs: [String]
+    verificationDocs: [String],
+
+    status: {
+      type: String,
+      enum: ["pending", "approved", "rejected", "suspended"],
+      default: "pending"
+    },
+    rejectionReason: String,
+    approvedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    approvedAt: Date
   },
   { timestamps: true }
 );

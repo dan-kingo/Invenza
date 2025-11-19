@@ -12,6 +12,10 @@ export interface IUser extends Document {
   isVerified: boolean;
   verificationToken?: string;
   refreshTokens: string[];
+  isSuspended: boolean;
+  suspensionReason?: string;
+  suspendedBy?: mongoose.Types.ObjectId;
+  suspendedAt?: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -33,7 +37,12 @@ const userSchema = new Schema<IUser>(
     isVerified: { type: Boolean, default: false },
     verificationToken: String,
 
-    refreshTokens: [String]
+    refreshTokens: [String],
+
+    isSuspended: { type: Boolean, default: false },
+    suspensionReason: String,
+    suspendedBy: { type: Schema.Types.ObjectId, ref: "User" },
+    suspendedAt: Date
   },
   { timestamps: true }
 );

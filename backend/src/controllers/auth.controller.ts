@@ -66,6 +66,14 @@ export class AuthController {
 
       if (!user) return res.status(404).json({ error: "User not found" });
 
+      if (user.isSuspended) {
+        return res.status(403).json({
+          error: "Account suspended",
+          reason: user.suspensionReason,
+          suspendedAt: user.suspendedAt
+        });
+      }
+
       if (!user.passwordHash)
         return res.status(400).json({ error: "Use social login instead" });
 
