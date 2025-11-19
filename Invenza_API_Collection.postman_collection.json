@@ -1,0 +1,1787 @@
+{
+  "info": {
+    "name": "Invenza API",
+    "_postman_id": "invenza-api-collection",
+    "description": "Comprehensive API collection for Invenza Inventory Management System. This collection includes all endpoints for authentication, business management, items, tags, alerts, notifications, sync, and reporting.\n\nBase URL: http://localhost:5000\n\nAuthentication: Most endpoints require a Bearer token in the Authorization header.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "businessId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tagId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "alertId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "notificationId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the API server is running and healthy. No authentication required."
+          },
+          "response": []
+        }
+      ],
+      "description": "Health check endpoint to verify API availability"
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.user && response.user._id) {",
+                  "        pm.environment.set('userId', response.user._id);",
+                  "    }",
+                  "    if (response.user && response.user.businessId) {",
+                  "        pm.environment.set('businessId', response.user.businessId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"phone\": \"+251911234567\",\n  \"password\": \"SecurePassword123!\",\n  \"businessName\": \"John's Hardware Store\",\n  \"language\": \"en\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user and create a business. This endpoint creates both a user account and a business entity. The user will be assigned the 'owner' role for the business.\n\nRequired fields:\n- name: User's full name\n- email or phone: At least one is required\n- password: Strong password\n- businessName: Name of the business\n- language: Preferred language (en, am, om)\n\nNote: After registration, verify your email using the verification link sent to your email."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.refreshToken);",
+                  "    if (response.user && response.user.businessId) {",
+                  "        pm.collectionVariables.set('businessId', response.user.businessId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with email/phone and password. Returns access token and refresh token.\n\nRequired fields:\n- email or phone: User's email or phone number\n- password: User's password\n\nResponse includes:\n- accessToken: JWT token for API authentication (expires in 15 minutes)\n- refreshToken: Token to refresh access token (expires in 30 days)\n- user: User profile information\n\nThe access token is automatically saved to collection variables for subsequent requests."
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-email?token=verification_token_here",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "verify-email"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "verification_token_here",
+                  "description": "Verification token sent to email"
+                }
+              ]
+            },
+            "description": "Verify user's email address using the token sent during registration.\n\nThe token is sent to the user's email after registration. Copy the token from the email and paste it as a query parameter."
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('accessToken', response.accessToken);",
+                  "    pm.collectionVariables.set('refreshToken', response.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "description": "Refresh the access token using the refresh token. Use this when your access token expires (after 15 minutes).\n\nThe refresh token is valid for 30 days. After refreshing, both new access token and refresh token are returned."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Logout the user by invalidating the refresh token. After logout, you'll need to login again to get new tokens."
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/forgot-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "forgot-password"]
+            },
+            "description": "Request a password reset link. An email will be sent with a reset token valid for 15 minutes.\n\nRequired fields:\n- email: User's registered email address"
+          },
+          "response": []
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset_token_from_email\",\n  \"newPassword\": \"NewSecurePassword123!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/reset-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "reset-password"]
+            },
+            "description": "Reset password using the token received via email.\n\nRequired fields:\n- token: Token from the password reset email\n- newPassword: New strong password"
+          },
+          "response": []
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"SecurePassword123!\",\n  \"newPassword\": \"NewSecurePassword456!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "change-password"]
+            },
+            "description": "Change password for authenticated user. Requires authentication.\n\nRequired fields:\n- oldPassword: Current password\n- newPassword: New strong password"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints for user registration, login, password management, and token refresh"
+    },
+    {
+      "name": "Business",
+      "item": [
+        {
+          "name": "Get Business Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/business/{{businessId}}?lang=en",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "business", "{{businessId}}"],
+              "query": [
+                {
+                  "key": "lang",
+                  "value": "en",
+                  "description": "Language for translation (en, am, om)"
+                }
+              ]
+            },
+            "description": "Get business details by ID. Supports translation to different languages.\n\nQuery parameters:\n- lang (optional): Language code (en, am, om) for translating business name and location\n\nNo authentication required for this endpoint."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Business",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John's Updated Hardware Store\",\n  \"location\": \"123 Main St, Addis Ababa\",\n  \"contactPhone\": \"+251911234567\",\n  \"language\": \"en\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/business/{{businessId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "business", "{{businessId}}"]
+            },
+            "description": "Update business information. Only the business owner can update business details.\n\nUpdatable fields:\n- name: Business name\n- location: Physical location/address\n- contactPhone: Contact phone number\n- language: Preferred language (en, am, om)\n\nRequires authentication and owner role."
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Verification Document",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "document",
+                  "type": "file",
+                  "src": [],
+                  "description": "Business verification document (PDF, JPEG, PNG)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/business/{{businessId}}/doc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "business", "{{businessId}}", "doc"]
+            },
+            "description": "Upload business verification documents (e.g., trade license, tax registration).\n\nSupported formats:\n- PDF\n- JPEG/JPG\n- PNG\n\nMaximum file size: 5MB\n\nDocuments are uploaded to Cloudinary and URLs are stored in the business record. Only the business owner can upload documents."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Business Settings",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/business/{{businessId}}/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "business", "{{businessId}}", "settings"]
+            },
+            "description": "Get business settings including language, contact phone, and verification documents.\n\nOnly the business owner can access settings. Requires authentication."
+          },
+          "response": []
+        }
+      ],
+      "description": "Business management endpoints for viewing and updating business information"
+    },
+    {
+      "name": "Items",
+      "item": [
+        {
+          "name": "Create Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.item && response.item._id) {",
+                  "        pm.collectionVariables.set('itemId', response.item._id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Hammer",
+                  "type": "text",
+                  "description": "Item name (required)"
+                },
+                {
+                  "key": "sku",
+                  "value": "HAM-001",
+                  "type": "text",
+                  "description": "Stock keeping unit (optional)"
+                },
+                {
+                  "key": "description",
+                  "value": "Heavy duty claw hammer",
+                  "type": "text",
+                  "description": "Item description (optional)"
+                },
+                {
+                  "key": "quantity",
+                  "value": "50",
+                  "type": "text",
+                  "description": "Initial quantity (optional, default: 0)"
+                },
+                {
+                  "key": "unit",
+                  "value": "pcs",
+                  "type": "text",
+                  "description": "Unit of measurement: pcs, kg, ltr (default: pcs)"
+                },
+                {
+                  "key": "category",
+                  "value": "Tools",
+                  "type": "text",
+                  "description": "Item category (optional)"
+                },
+                {
+                  "key": "location",
+                  "value": "Aisle 3, Shelf B",
+                  "type": "text",
+                  "description": "Storage location (optional)"
+                },
+                {
+                  "key": "tags",
+                  "value": "[\"tag-001\", \"tag-002\"]",
+                  "type": "text",
+                  "description": "Array of tag IDs (optional)"
+                },
+                {
+                  "key": "minThreshold",
+                  "value": "10",
+                  "type": "text",
+                  "description": "Minimum stock threshold for alerts (default: 0)"
+                },
+                {
+                  "key": "expiryDate",
+                  "value": "2025-12-31",
+                  "type": "text",
+                  "description": "Expiry date (optional, format: YYYY-MM-DD)"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "description": "Item image (optional, JPEG/PNG)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"]
+            },
+            "description": "Create a new inventory item with optional image upload.\n\nRequired fields:\n- name: Item name\n\nOptional fields:\n- sku: Stock keeping unit\n- description: Item description\n- quantity: Initial quantity (default: 0)\n- unit: pcs, kg, or ltr (default: pcs)\n- category: Item category\n- location: Storage location\n- tags: Array of tag IDs (as JSON string)\n- minThreshold: Minimum stock alert threshold\n- expiryDate: Expiry date (YYYY-MM-DD format)\n- image: Item image file (JPEG/PNG, max 5MB)\n\nIf initial quantity > 0, an inventory event is created automatically. If quantity <= minThreshold, a low stock alert is created.\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "List Items",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items?category=Tools&tag=tag-001&lowStock=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "Tools",
+                  "description": "Filter by category (optional)"
+                },
+                {
+                  "key": "tag",
+                  "value": "tag-001",
+                  "description": "Filter by tag ID (optional)"
+                },
+                {
+                  "key": "lowStock",
+                  "value": "true",
+                  "description": "Filter low stock items (quantity <= minThreshold)"
+                }
+              ]
+            },
+            "description": "List all items for the authenticated user's business.\n\nQuery parameters (all optional):\n- category: Filter by category\n- tag: Filter by tag ID\n- lowStock: If 'true', only returns items with quantity <= minThreshold\n\nReturns items sorted by creation date (newest first). Requires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Item Details",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            },
+            "description": "Get detailed information about a specific item by ID.\n\nReturns complete item details including:\n- Basic info (name, SKU, description)\n- Quantity and unit\n- Category and location\n- Tags\n- Threshold settings\n- Image URL\n- Expiry date\n- Timestamps\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Item",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Updated Hammer",
+                  "type": "text",
+                  "description": "Item name (optional)"
+                },
+                {
+                  "key": "sku",
+                  "value": "HAM-002",
+                  "type": "text",
+                  "description": "Stock keeping unit (optional)"
+                },
+                {
+                  "key": "description",
+                  "value": "Professional grade claw hammer",
+                  "type": "text",
+                  "description": "Item description (optional)"
+                },
+                {
+                  "key": "unit",
+                  "value": "pcs",
+                  "type": "text",
+                  "description": "Unit of measurement (optional)"
+                },
+                {
+                  "key": "category",
+                  "value": "Hand Tools",
+                  "type": "text",
+                  "description": "Item category (optional)"
+                },
+                {
+                  "key": "location",
+                  "value": "Aisle 3, Shelf C",
+                  "type": "text",
+                  "description": "Storage location (optional)"
+                },
+                {
+                  "key": "tags",
+                  "value": "[\"tag-001\", \"tag-003\"]",
+                  "type": "text",
+                  "description": "Array of tag IDs (optional)"
+                },
+                {
+                  "key": "minThreshold",
+                  "value": "15",
+                  "type": "text",
+                  "description": "Minimum stock threshold (optional)"
+                },
+                {
+                  "key": "expiryDate",
+                  "value": "2026-06-30",
+                  "type": "text",
+                  "description": "Expiry date (optional)"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "description": "New item image (optional)"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            },
+            "description": "Update an existing item. All fields are optional - only include fields you want to update.\n\nNote: To update quantity, use the 'Adjust Quantity' endpoint instead.\n\nUpdatable fields:\n- name, sku, description\n- unit, category, location\n- tags (replaces all tags)\n- minThreshold\n- expiryDate\n- image (uploads new image)\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Adjust Quantity",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"delta\": -5,\n  \"action\": \"sold\",\n  \"reason\": \"Sold to customer ABC\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}/adjust",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}", "adjust"]
+            },
+            "description": "Adjust item quantity (add or remove stock). This creates an inventory event and checks for low stock alerts.\n\nRequired fields:\n- delta: Quantity change (positive for additions, negative for removals)\n- action: Type of adjustment (added, sold, used, adjusted)\n\nOptional fields:\n- reason: Reason for adjustment\n\nAction types:\n- added: Stock added (restocking)\n- sold: Item sold to customer\n- used: Item used internally\n- adjusted: Manual quantity adjustment\n\nThe system:\n1. Updates item quantity\n2. Creates an inventory event log\n3. Checks threshold and creates alerts if needed\n4. Prevents negative quantities\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Scan Item by Tag",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagId\": \"tag-001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/items/scan",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "scan"]
+            },
+            "description": "Scan an NFC/RFID tag to retrieve associated item information.\n\nRequired fields:\n- tagId: The scanned tag ID\n\nReturns:\n- Tag information\n- Associated item details (if tag is attached to an item)\n- Message if tag is not attached to any item\n\nUseful for quick item lookup using NFC/RFID scanners. Requires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Item Events History",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}/events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}", "events"]
+            },
+            "description": "Get the complete history of inventory events for a specific item.\n\nReturns a list of all quantity adjustments including:\n- Delta (quantity change)\n- Action (added, sold, used, adjusted)\n- Reason\n- Timestamp\n- User who performed the action\n\nEvents are sorted by timestamp (newest first). Requires authentication."
+          },
+          "response": []
+        }
+      ],
+      "description": "Inventory item management endpoints for creating, updating, and tracking items"
+    },
+    {
+      "name": "Tags",
+      "item": [
+        {
+          "name": "Register Tag",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.tag && response.tag.tagId) {",
+                  "        pm.collectionVariables.set('tagId', response.tag.tagId);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagId\": \"NFC-12345678\",\n  \"type\": \"item\",\n  \"meta\": {\n    \"color\": \"blue\",\n    \"material\": \"plastic\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/tags/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tags", "register"]
+            },
+            "description": "Register a new NFC/RFID tag in the system.\n\nRequired fields:\n- type: Tag type (item or box)\n\nOptional fields:\n- tagId: Unique tag identifier (auto-generated if not provided)\n- meta: Additional metadata as JSON object\n\nTag types:\n- item: Tag for individual items\n- box: Tag for boxes/containers\n\nAfter registration, attach the tag to an item by updating the item with the tag ID. Requires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tag Details",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tags/{{tagId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tags", "{{tagId}}"]
+            },
+            "description": "Get details of a specific tag by its ID.\n\nReturns:\n- Tag ID and type\n- Associated item (if attached)\n- Metadata\n- Creation timestamp\n\nIf the tag is attached to an item, the response includes full item details. Requires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "List Tags",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/tags?type=item",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "tags"],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "item",
+                  "description": "Filter by tag type: item or box (optional)"
+                }
+              ]
+            },
+            "description": "List all tags registered for the authenticated user's business.\n\nQuery parameters:\n- type (optional): Filter by tag type (item or box)\n\nReturns tags with their associated items (if attached), sorted by creation date (newest first). Requires authentication."
+          },
+          "response": []
+        }
+      ],
+      "description": "NFC/RFID tag management endpoints for registering and tracking tags"
+    },
+    {
+      "name": "Alerts & Notifications",
+      "item": [
+        {
+          "name": "Get Alerts",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts?includeResolved=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts"],
+              "query": [
+                {
+                  "key": "includeResolved",
+                  "value": "false",
+                  "description": "Include resolved alerts (default: false)"
+                }
+              ]
+            },
+            "description": "Get inventory alerts for the authenticated user's business.\n\nQuery parameters:\n- includeResolved (optional): Set to 'true' to include resolved alerts\n\nAlert types:\n- low_stock: Item quantity at or below threshold\n- out_of_stock: Item quantity is zero\n- expiry_warning: Item expiring within 7 days\n- critical: High priority alerts\n\nSeverity levels:\n- info: Informational\n- warning: Warning level\n- critical: Critical priority\n\nAlerts include item details and are sorted by creation date (newest first). Requires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Resolve Alert",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/{{alertId}}/resolve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", "{{alertId}}", "resolve"]
+            },
+            "description": "Manually resolve an alert. Only owners and admins can resolve alerts.\n\nOnce resolved, the alert:\n- isResolved = true\n- resolvedAt = current timestamp\n\nAlerts also auto-resolve when the underlying issue is fixed (e.g., stock is replenished above threshold).\n\nRequires authentication and owner/admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Trigger Manual Threshold Check",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/alerts/check",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "alerts", "check"]
+            },
+            "description": "Manually trigger a threshold check for all items and check for expiring items.\n\nThis endpoint runs:\n1. Threshold check for all items (creates/resolves low stock alerts)\n2. Expiry check for items expiring within 7 days\n\nUseful for testing or forcing an immediate check outside the scheduled times.\n\nScheduled checks run automatically:\n- Threshold checks: Every hour\n- Expiry checks: Daily at 8:00 AM\n\nOnly owners and admins can trigger manual checks. Requires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Register Device for Push Notifications",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]\",\n  \"platform\": \"ios\",\n  \"deviceId\": \"device-unique-id-123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/devices/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "devices", "register"]
+            },
+            "description": "Register a device for push notifications using Expo push tokens.\n\nRequired fields:\n- token: Valid Expo push token (format: ExponentPushToken[...])\n- platform: Device platform (ios, android, or web)\n\nOptional fields:\n- deviceId: Unique device identifier\n\nAfter registration, the device will receive push notifications for:\n- Low stock alerts\n- Out of stock alerts\n- Critical alerts\n- Expiry warnings\n\nEmail notifications are sent only for critical alerts. In-app notifications are always created.\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications?limit=50&includeRead=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Maximum number of notifications to return (default: 50)"
+                },
+                {
+                  "key": "includeRead",
+                  "value": "false",
+                  "description": "Include read notifications (default: false)"
+                }
+              ]
+            },
+            "description": "Get notifications for the authenticated user.\n\nQuery parameters:\n- limit (optional): Maximum number of notifications (default: 50)\n- includeRead (optional): Set to 'true' to include read notifications\n\nReturns:\n- notifications: Array of notification objects\n- unreadCount: Count of unread notifications\n\nNotifications include:\n- Title and message\n- Type and severity\n- Related alert and item data\n- Delivery channels (push, email, in_app)\n- Read status and timestamp\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/unread-count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "unread-count"]
+            },
+            "description": "Get the count of unread notifications for the authenticated user.\n\nUseful for displaying notification badges in the UI. Requires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/{{notificationId}}/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "{{notificationId}}", "read"]
+            },
+            "description": "Mark a specific notification as read.\n\nUpdates:\n- isRead = true\n- readAt = current timestamp\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Mark All Notifications as Read",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/read-all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "read-all"]
+            },
+            "description": "Mark all notifications as read for the authenticated user.\n\nReturns the count of notifications marked as read. Requires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/notifications/{{notificationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "notifications", "{{notificationId}}"]
+            },
+            "description": "Delete a specific notification. Users can only delete their own notifications.\n\nRequires authentication."
+          },
+          "response": []
+        }
+      ],
+      "description": "Alert management and notification system endpoints"
+    },
+    {
+      "name": "Sync",
+      "item": [
+        {
+          "name": "Push Operations (Offline Sync)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"operations\": [\n    {\n      \"opId\": \"op-123-456-789\",\n      \"type\": \"adjust\",\n      \"entityType\": \"item\",\n      \"payload\": {\n        \"itemId\": \"{{itemId}}\",\n        \"delta\": -3,\n        \"action\": \"sold\",\n        \"reason\": \"Customer purchase\"\n      },\n      \"clientTimestamp\": \"2025-01-19T10:30:00.000Z\"\n    },\n    {\n      \"opId\": \"op-123-456-790\",\n      \"type\": \"create\",\n      \"entityType\": \"item\",\n      \"payload\": {\n        \"name\": \"New Screwdriver\",\n        \"quantity\": 25,\n        \"unit\": \"pcs\",\n        \"category\": \"Tools\",\n        \"minThreshold\": 5\n      },\n      \"clientTimestamp\": \"2025-01-19T10:31:00.000Z\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/push",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "push"]
+            },
+            "description": "Push offline operations to the server for synchronization.\n\nThis endpoint processes multiple operations from offline clients and applies them to the server database.\n\nOperation structure:\n- opId: Unique operation ID (required, prevents duplicates)\n- type: Operation type (adjust, create, update, delete)\n- entityType: Entity being modified (item, tag, business)\n- payload: Operation data\n- clientTimestamp: When operation occurred on client (optional)\n\nOperation types:\n- adjust: Adjust item quantity\n- create: Create new entity\n- update: Update existing entity\n- delete: Delete entity\n\nConflict resolution:\n- Last-write-wins strategy\n- Duplicate opId ignored\n- Insufficient quantity returns conflict status\n- Server timestamp checked for updates\n\nResponse includes:\n- serverTime: Current server timestamp\n- results: Array of operation results (applied, conflict, failed)\n\nUse the serverTime for subsequent pull requests. Requires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Pull Operations",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/pull?since=2025-01-19T10:00:00.000Z",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "pull"],
+              "query": [
+                {
+                  "key": "since",
+                  "value": "2025-01-19T10:00:00.000Z",
+                  "description": "ISO timestamp of last sync (required)"
+                }
+              ]
+            },
+            "description": "Pull operations from the server that occurred after a specific timestamp.\n\nQuery parameters:\n- since (required): ISO timestamp of last successful sync\n\nReturns:\n- serverTime: Current server timestamp (use for next pull)\n- operations: Array of operations since the timestamp\n- count: Number of operations\n\nUse this endpoint to:\n1. Fetch changes made by other users/devices\n2. Keep local database synchronized\n3. Resolve conflicts from push operations\n\nTypical sync flow:\n1. Pull latest changes (using last sync timestamp)\n2. Apply changes to local database\n3. Push local changes\n4. Store new serverTime for next sync\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Conflict Log",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/conflicts?limit=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "conflicts"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "100",
+                  "description": "Maximum number of conflicts to return (default: 100)"
+                }
+              ]
+            },
+            "description": "Get a log of sync conflicts for the business.\n\nQuery parameters:\n- limit (optional): Maximum number of conflicts (default: 100)\n\nReturns conflicts with:\n- Operation details\n- Conflict reason (e.g., insufficient quantity, server has newer data)\n- User who performed the operation\n- Item details (if applicable)\n- Timestamps\n\nUseful for:\n- Debugging sync issues\n- Understanding why operations failed\n- Auditing rejected changes\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Deduplicate Operations",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/deduplicate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "deduplicate"]
+            },
+            "description": "Remove duplicate sync operations based on opId.\n\nThis maintenance endpoint:\n- Finds operations with duplicate opId\n- Keeps the first occurrence\n- Deletes duplicates\n- Returns count of removed operations\n\nUseful for cleaning up the sync operation log. Only owners and admins can run deduplication.\n\nRequires authentication and owner/admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Cleanup Old Operations",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/cleanup?days=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "cleanup"],
+              "query": [
+                {
+                  "key": "days",
+                  "value": "30",
+                  "description": "Keep operations from last N days (default: 30)"
+                }
+              ]
+            },
+            "description": "Delete old sync operations to free up database space.\n\nQuery parameters:\n- days (optional): Number of days to keep (default: 30)\n\nThis maintenance endpoint:\n- Deletes operations older than specified days\n- Returns count of removed operations\n- Keeps recent operations for sync\n\nRecommended to run periodically (e.g., monthly) to maintain database performance.\n\nOnly owners and admins can run cleanup. Requires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Sync Status Check",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/sync/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "sync", "status"]
+            },
+            "description": "Check sync service status and get current server time.\n\nReturns:\n- serverTime: Current server timestamp\n- businessId: Authenticated user's business ID\n- userId: Authenticated user ID\n- message: Status message\n\nUseful for:\n- Verifying sync service is operational\n- Getting accurate server time\n- Confirming authentication\n\nRequires authentication."
+          },
+          "response": []
+        }
+      ],
+      "description": "Offline synchronization endpoints for multi-device support and conflict resolution"
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Stock Summary Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/stock-summary?from=2025-01-01&to=2025-01-31&format=json",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "stock-summary"],
+              "query": [
+                {
+                  "key": "from",
+                  "value": "2025-01-01",
+                  "description": "Start date (YYYY-MM-DD format, optional)"
+                },
+                {
+                  "key": "to",
+                  "value": "2025-01-31",
+                  "description": "End date (YYYY-MM-DD format, optional)"
+                },
+                {
+                  "key": "format",
+                  "value": "json",
+                  "description": "Response format: json, csv, or pdf (default: json)"
+                }
+              ]
+            },
+            "description": "Generate a comprehensive stock summary report.\n\nQuery parameters (all optional):\n- from: Start date for events (YYYY-MM-DD)\n- to: End date for events (YYYY-MM-DD)\n- format: Response format (json, csv, pdf)\n\nReport includes for each item:\n- Item details (name, SKU, category)\n- Current quantity and unit\n- Minimum threshold\n- Total added (restocking)\n- Total removed (sold/used)\n- Net change\n\nFormats:\n- json: Returns JSON array\n- csv: Downloads CSV file\n- pdf: Downloads formatted PDF\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Low Stock Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/low-stock?format=json",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "low-stock"],
+              "query": [
+                {
+                  "key": "format",
+                  "value": "json",
+                  "description": "Response format: json, csv, or pdf (default: json)"
+                }
+              ]
+            },
+            "description": "Generate a report of items with low stock (quantity <= minThreshold).\n\nQuery parameters:\n- format (optional): Response format (json, csv, pdf)\n\nReport includes:\n- Item details (name, SKU, category)\n- Current quantity\n- Minimum threshold\n- Unit\n- Percentage remaining (calculated)\n\nItems are sorted by quantity (lowest first).\n\nFormats:\n- json: Returns JSON array\n- csv: Downloads CSV file\n- pdf: Downloads formatted PDF\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Usage Trends Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/usage-trends?period=monthly&format=json",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "usage-trends"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "monthly",
+                  "description": "Time period: weekly or monthly (required)"
+                },
+                {
+                  "key": "format",
+                  "value": "json",
+                  "description": "Response format: json, csv, or pdf (default: json)"
+                }
+              ]
+            },
+            "description": "Generate usage trends report showing item activity over time.\n\nQuery parameters:\n- period (required): Time period (weekly or monthly)\n- format (optional): Response format (json, csv, pdf)\n\nPeriod options:\n- weekly: Last 12 weeks of data\n- monthly: Last 12 months of data\n\nReport includes for each item/period:\n- Item name and ID\n- Time period (e.g., 2025-W03 or 2025-01)\n- Total added (restocking)\n- Total sold\n- Total used internally\n- Total adjusted\n- Net change\n\nUseful for:\n- Identifying usage patterns\n- Forecasting stock needs\n- Planning purchases\n\nFormats:\n- json: Returns JSON array\n- csv: Downloads CSV file\n- pdf: Downloads formatted PDF (landscape)\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Top Selling Items Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/top-selling?limit=10&from=2025-01-01&to=2025-01-31&format=json",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "top-selling"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Number of top items to return (default: 10)"
+                },
+                {
+                  "key": "from",
+                  "value": "2025-01-01",
+                  "description": "Start date (YYYY-MM-DD format, optional)"
+                },
+                {
+                  "key": "to",
+                  "value": "2025-01-31",
+                  "description": "End date (YYYY-MM-DD format, optional)"
+                },
+                {
+                  "key": "format",
+                  "value": "json",
+                  "description": "Response format: json or csv (default: json)"
+                }
+              ]
+            },
+            "description": "Generate a report of top selling items.\n\nQuery parameters (all optional):\n- limit: Number of items to return (default: 10)\n- from: Start date for sales (YYYY-MM-DD)\n- to: End date for sales (YYYY-MM-DD)\n- format: Response format (json or csv)\n\nReport includes:\n- Item name and ID\n- Total quantity sold\n- Unit\n\nItems are sorted by total sold (highest first).\n\nUseful for:\n- Identifying popular products\n- Inventory planning\n- Sales analysis\n\nFormats:\n- json: Returns JSON array\n- csv: Downloads CSV file\n\nRequires authentication."
+          },
+          "response": []
+        },
+        {
+          "name": "Category Breakdown Report",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/reports/category-breakdown",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "reports", "category-breakdown"]
+            },
+            "description": "Generate a breakdown of inventory by category.\n\nReport includes for each category:\n- Category name\n- Number of items in category\n- Total quantity across all items\n\nItems without a category are grouped under \"Uncategorized\".\n\nCategories are sorted by total quantity (highest first).\n\nUseful for:\n- Understanding inventory composition\n- Identifying major product categories\n- Planning category-specific actions\n\nReturns JSON only. Requires authentication."
+          },
+          "response": []
+        }
+      ],
+      "description": "Reporting and analytics endpoints for business insights"
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get All Businesses",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/businesses?status=pending",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "businesses"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "pending",
+                  "description": "Filter by status: pending, approved, rejected, suspended (optional)"
+                }
+              ]
+            },
+            "description": "Get all businesses in the system. Admin only.\n\nQuery parameters:\n- status (optional): Filter by business status\n\nStatus values:\n- pending: Awaiting approval\n- approved: Approved and active\n- rejected: Application rejected\n- suspended: Temporarily suspended\n\nReturns businesses with approval details, sorted by creation date (newest first).\n\nRequires authentication and admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Approve Business",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/businesses/{{businessId}}/approve",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "businesses", "{{businessId}}", "approve"]
+            },
+            "description": "Approve a pending business application. Admin only.\n\nThis action:\n- Changes status to 'approved'\n- Records approving admin\n- Sets approval timestamp\n\nAfter approval, the business can operate normally.\n\nRequires authentication and admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Reject Business",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Incomplete verification documents\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/businesses/{{businessId}}/reject",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "businesses", "{{businessId}}", "reject"]
+            },
+            "description": "Reject a business application. Admin only.\n\nOptional fields:\n- reason: Reason for rejection\n\nThis action:\n- Changes status to 'rejected'\n- Records rejection reason\n\nThe business owner can see the rejection reason and may reapply.\n\nRequires authentication and admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Suspend Business",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Terms of service violation\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/businesses/{{businessId}}/suspend",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "businesses", "{{businessId}}", "suspend"]
+            },
+            "description": "Suspend a business temporarily. Admin only.\n\nOptional fields:\n- reason: Reason for suspension\n\nThis action:\n- Changes status to 'suspended'\n- Records suspension reason\n- Prevents business operations\n\nUsed for policy violations or investigation periods.\n\nRequires authentication and admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users?suspended=false&role=owner",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users"],
+              "query": [
+                {
+                  "key": "suspended",
+                  "value": "false",
+                  "description": "Filter by suspension status: true or false (optional)"
+                },
+                {
+                  "key": "role",
+                  "value": "owner",
+                  "description": "Filter by role: owner, staff, admin (optional)"
+                }
+              ]
+            },
+            "description": "Get all users in the system. Admin only.\n\nQuery parameters (all optional):\n- suspended: Filter by suspension status (true/false)\n- role: Filter by user role (owner, staff, admin)\n\nReturns users with:\n- Profile information\n- Business details\n- Suspension status and reason\n- Suspending admin details\n\nExcludes sensitive data (passwords, tokens).\n\nSorted by creation date (newest first). Requires authentication and admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Suspend User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Suspicious activity detected\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/:id/suspend",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", ":id", "suspend"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "Suspend a user account. Admin only.\n\nOptional fields:\n- reason: Reason for suspension\n\nThis action:\n- Marks user as suspended\n- Records suspension reason and timestamp\n- Records suspending admin\n- Prevents user login\n\nNotes:\n- Cannot suspend admin users\n- Suspended users cannot access the system\n\nRequires authentication and admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Unsuspend User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/:id/unsuspend",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", ":id", "unsuspend"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "user_id_here"
+                }
+              ]
+            },
+            "description": "Remove suspension from a user account. Admin only.\n\nThis action:\n- Removes suspended status\n- Clears suspension reason and timestamps\n- Allows user to login again\n\nRequires authentication and admin role."
+          },
+          "response": []
+        },
+        {
+          "name": "Get System Metrics",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "metrics"]
+            },
+            "description": "Get comprehensive system metrics and statistics. Admin only.\n\nReturns metrics for:\n\nBusinesses:\n- Total, active, pending, suspended counts\n\nUsers:\n- Total, active, suspended counts\n\nInventory:\n- Total items\n- Items with tags\n- Total tags\n- Low stock items count\n\nAlerts:\n- Total alerts\n- Unresolved alerts\n- Critical alerts\n\nUseful for:\n- System monitoring\n- Dashboard displays\n- Health checks\n- Capacity planning\n\nRequires authentication and admin role."
+          },
+          "response": []
+        }
+      ],
+      "description": "Administrative endpoints for system management (admin role required)"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  }
+}
