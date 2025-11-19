@@ -12,6 +12,7 @@ import syncRoutes from "./routes/sync.routes.js";
 import deviceRoutes from "./routes/device.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import alertRoutes from "./routes/alert.routes.js";
+import reportRoutes from "./routes/report.routes.js";
 const app = express();
 
 // Middlewares
@@ -31,6 +32,7 @@ app.use("/api/sync", syncRoutes);
 app.use("/api/devices", deviceRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/alerts", alertRoutes);
+app.use("/api/reports", reportRoutes);
 // Error handler (should be last)
 app.use(errorHandler);
 
