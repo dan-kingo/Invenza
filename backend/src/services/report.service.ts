@@ -144,7 +144,7 @@ export class ReportService {
 
     const groupFormat = period === "weekly" ? "%Y-W%U" : "%Y-%m";
 
-    const pipeline = [
+    const pipeline: mongoose.PipelineStage[] = [
       {
         $match: {
           businessId,
@@ -250,7 +250,7 @@ export class ReportService {
       if (toDate) matchStage.timestamp.$lte = toDate;
     }
 
-    const pipeline = [
+    const pipeline: mongoose.PipelineStage[] = [
       {
         $match: matchStage
       },
@@ -298,7 +298,7 @@ export class ReportService {
   static async getCategoryBreakdown(
     businessId: mongoose.Types.ObjectId
   ): Promise<{ category: string; itemCount: number; totalQuantity: number }[]> {
-    const pipeline = [
+    const pipeline: mongoose.PipelineStage[] = [
       {
         $match: { businessId }
       },

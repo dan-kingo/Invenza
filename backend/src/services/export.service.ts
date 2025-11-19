@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { stringify } from "fast-csv";
+import { format as stringify } from "fast-csv";
 import PDFDocument from "pdfkit";
 import {
   StockSummaryItem,
