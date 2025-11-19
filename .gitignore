@@ -2,3 +2,7 @@ backend/node_modules/
 backend/dist/
 backend/.env
 .env
+
+mobile/.vscode
+mobile/node_modules/
+mobile/.expo
