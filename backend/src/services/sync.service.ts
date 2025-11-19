@@ -195,19 +195,23 @@ export class SyncService {
 
     switch (entityType) {
       case "item":
+        const { quantity, ...restPayload } = op.payload as any;
         const itemData = {
-          ...op.payload,
-          businessId
+          ...restPayload,
+          businessId,
+          quantity
         };
         createdEntity = await Item.create(itemData);
         entityId = createdEntity._id;
 
-        if (itemData.quantity && itemData.quantity > 0) {
+        const initialQuantity = typeof quantity === "number" ? quantity : (quantity ? Number(quantity) : 0);
+
+        if (initialQuantity > 0) {
           await InventoryEvent.create({
             itemId: createdEntity._id,
             businessId,
             userId,
-            delta: itemData.quantity,
+            delta: initialQuantity,
             action: "added",
             reason: "Initial stock (sync)"
           });
@@ -420,7 +424,7 @@ export class SyncService {
       .sort({ appliedAt: 1 })
       .lean();
 
-    return operations;
+    return operations as unknown as ISyncOp[];
   }
 
   static async deduplicateOperations(businessId: mongoose.Types.ObjectId): Promise<number> {
@@ -466,6 +470,6 @@ export class SyncService {
       .populate("itemId", "name sku")
       .lean();
 
-    return conflicts;
+    return conflicts as unknown as ISyncOp[];
   }
 }

@@ -109,10 +109,8 @@ export class ReportService {
       .lean();
 
     const lowStockItems: LowStockItem[] = items.map((item) => {
-      const percentageRemaining =
-        item.minThreshold > 0
-          ? Math.round((item.quantity / item.minThreshold) * 100)
-          : 0;
+      const threshold = item.minThreshold ?? 0;
+      const percentageRemaining = threshold > 0 ? Math.round((item.quantity / threshold) * 100) : 0;
 
       return {
         itemId: item._id.toString(),
@@ -120,7 +118,7 @@ export class ReportService {
         sku: item.sku,
         category: item.category,
         currentQuantity: item.quantity,
-        minThreshold: item.minThreshold || 0,
+        minThreshold: threshold,
         unit: item.unit,
         percentageRemaining
       };

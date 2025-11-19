@@ -15,8 +15,9 @@ export class AlertService {
 
     if (!item) return;
 
-    const isLowStock = currentQuantity <= item.minThreshold;
-    const isOutOfStock = currentQuantity === 0;
+  const threshold = item.minThreshold ?? 0;
+  const isLowStock = currentQuantity <= threshold;
+  const isOutOfStock = currentQuantity === 0;
 
     const existingAlert = await Alert.findOne({
       itemId,
@@ -39,7 +40,7 @@ export class AlertService {
           "critical",
           `${item.name} is out of stock`,
           currentQuantity,
-          item.minThreshold
+          threshold
         );
 
         await this.sendAlertNotifications(alert);
@@ -53,7 +54,7 @@ export class AlertService {
           "warning",
           `${item.name} is running low (${currentQuantity} ${item.unit} remaining)`,
           currentQuantity,
-          item.minThreshold
+          threshold
         );
 
         await this.sendAlertNotifications(alert);

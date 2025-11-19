@@ -19,7 +19,7 @@ export class ExportService {
       `attachment; filename="stock-summary-${Date.now()}.csv"`
     );
 
-    const csvStream = stringify({
+    const csvStream = stringify(({ 
       headers: true,
       columns: [
         { key: "itemId", header: "Item ID" },
@@ -33,7 +33,7 @@ export class ExportService {
         { key: "totalRemoved", header: "Total Removed" },
         { key: "netChange", header: "Net Change" }
       ]
-    });
+    } as any));
 
     csvStream.pipe(res);
 
@@ -54,7 +54,7 @@ export class ExportService {
       `attachment; filename="low-stock-${Date.now()}.csv"`
     );
 
-    const csvStream = stringify({
+    const csvStream = stringify(({ 
       headers: true,
       columns: [
         { key: "itemId", header: "Item ID" },
@@ -66,7 +66,7 @@ export class ExportService {
         { key: "unit", header: "Unit" },
         { key: "percentageRemaining", header: "Percentage Remaining (%)" }
       ]
-    });
+    } as any));
 
     csvStream.pipe(res);
 
@@ -88,7 +88,7 @@ export class ExportService {
       `attachment; filename="usage-trends-${period}-${Date.now()}.csv"`
     );
 
-    const csvStream = stringify({
+    const csvStream = stringify(({ 
       headers: true,
       columns: [
         { key: "itemId", header: "Item ID" },
@@ -100,7 +100,7 @@ export class ExportService {
         { key: "totalAdjusted", header: "Total Adjusted" },
         { key: "netChange", header: "Net Change" }
       ]
-    });
+    } as any));
 
     csvStream.pipe(res);
 
@@ -121,7 +121,7 @@ export class ExportService {
       `attachment; filename="top-selling-${Date.now()}.csv"`
     );
 
-    const csvStream = stringify({
+    const csvStream = stringify(({ 
       headers: true,
       columns: [
         { key: "itemId", header: "Item ID" },
@@ -129,7 +129,7 @@ export class ExportService {
         { key: "totalSold", header: "Total Sold" },
         { key: "unit", header: "Unit" }
       ]
-    });
+    } as any));
 
     csvStream.pipe(res);
 

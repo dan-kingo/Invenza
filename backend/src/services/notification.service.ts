@@ -9,7 +9,7 @@ const expo = new Expo();
 
 export class NotificationService {
   static async registerDeviceToken(
-    userId: mongoose.Types.ObjectId,
+    userId: mongoose.Types.ObjectId | string,
     token: string,
     platform: "ios" | "android" | "web",
     deviceId?: string
@@ -21,7 +21,7 @@ export class NotificationService {
     const existing = await DeviceToken.findOne({ token });
 
     if (existing) {
-      existing.userId = userId;
+      existing.userId = userId as any;
       existing.platform = platform;
       existing.deviceId = deviceId;
       existing.isActive = true;
@@ -29,7 +29,7 @@ export class NotificationService {
       await existing.save();
     } else {
       await DeviceToken.create({
-        userId,
+        userId: userId as any,
         token,
         platform,
         deviceId,
@@ -40,7 +40,7 @@ export class NotificationService {
   }
 
   static async sendPushNotification(
-    userId: mongoose.Types.ObjectId,
+    userId: mongoose.Types.ObjectId | string,
     notification: INotification
   ): Promise<void> {
     const deviceTokens = await DeviceToken.find({
@@ -152,7 +152,7 @@ export class NotificationService {
   }
 
   static async getUserNotifications(
-    userId: mongoose.Types.ObjectId,
+    userId: mongoose.Types.ObjectId | string,
     limit: number = 50,
     includeRead: boolean = false
   ): Promise<INotification[]> {
@@ -172,7 +172,7 @@ export class NotificationService {
 
   static async markAsRead(
     notificationId: mongoose.Types.ObjectId,
-    userId: mongoose.Types.ObjectId
+    userId: mongoose.Types.ObjectId | string
   ): Promise<INotification | null> {
     const notification = await Notification.findOne({
       _id: notificationId,
@@ -188,7 +188,7 @@ export class NotificationService {
     return notification;
   }
 
-  static async markAllAsRead(userId: mongoose.Types.ObjectId): Promise<number> {
+  static async markAllAsRead(userId: mongoose.Types.ObjectId | string): Promise<number> {
     const result = await Notification.updateMany(
       { userId, isRead: false },
       { isRead: true, readAt: new Date() }
@@ -199,7 +199,7 @@ export class NotificationService {
 
   static async deleteNotification(
     notificationId: mongoose.Types.ObjectId,
-    userId: mongoose.Types.ObjectId
+    userId: mongoose.Types.ObjectId | string
   ): Promise<boolean> {
     const result = await Notification.deleteOne({
       _id: notificationId,
@@ -209,7 +209,7 @@ export class NotificationService {
     return result.deletedCount === 1;
   }
 
-  static async getUnreadCount(userId: mongoose.Types.ObjectId): Promise<number> {
+  static async getUnreadCount(userId: mongoose.Types.ObjectId | string): Promise<number> {
     return await Notification.countDocuments({
       userId,
       isRead: false
