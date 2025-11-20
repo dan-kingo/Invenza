@@ -34,12 +34,9 @@ export default function TabLayout() {
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: {
           backgroundColor: colors.surface,
-          // visible separator between content and tab bar
           borderTopWidth: 1,
           borderTopColor: colors.border + '80',
-          // add a small bottom margin so tabs don't sit flush against screen edge
           marginBottom: Platform.OS === 'ios' ? 6 : 2,
-          // keep height/padding for touch target while accounting for margin
           height: Platform.OS === 'ios' ? 88 : 78,
           paddingBottom: Platform.OS === 'ios' ? 24 : 12,
           paddingTop: 12,

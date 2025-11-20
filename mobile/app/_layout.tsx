@@ -12,7 +12,7 @@ function RootNavigator() {
   const router = useRouter();
 
   useEffect(() => {
-    SystemUI.setBackgroundColorAsync('#1E293B');
+    SystemUI.setBackgroundColorAsync('#0F172A');
   }, []);
 
   useEffect(() => {
@@ -52,7 +52,7 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <PaperProvider theme={theme}>
-       <StatusBar style="light" backgroundColor="#000" />
+       <StatusBar style="light" backgroundColor="#0F172A" translucent={false} />
       <AuthProvider>
         <RootNavigator />
       </AuthProvider>
