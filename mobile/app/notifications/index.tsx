@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 16,
   },
   headerTitle: {

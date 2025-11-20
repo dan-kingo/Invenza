@@ -10,7 +10,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import itemService from '../../services/item.service';
 import notificationService from '../../services/notification.service';
 import alertService from '../../services/alert.service';
-import alertService from '../../services/alert.service';
 
 interface DashboardStats {
   totalItems: number;
@@ -367,7 +366,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 100,
   },
   header: {
