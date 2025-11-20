@@ -38,6 +38,16 @@ class SyncService {
   async getStatus(): Promise<{ serverTime: string; businessId: string; userId: string; message: string }> {
     return await apiService.get(API_CONFIG.ENDPOINTS.SYNC.STATUS);
   }
+
+  async deduplicate(): Promise<{ message: string; removedCount: number }> {
+    return await apiService.post(API_CONFIG.ENDPOINTS.SYNC.DEDUPLICATE);
+  }
+
+  async cleanup(days: number = 30): Promise<{ message: string; removedCount: number }> {
+    return await apiService.post(API_CONFIG.ENDPOINTS.SYNC.CLEANUP, null, {
+      params: { days },
+    });
+  }
 }
 
 export default new SyncService();

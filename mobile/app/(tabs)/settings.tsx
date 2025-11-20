@@ -83,7 +83,7 @@ export default function SettingsScreen() {
                 />
               )}
               right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.textMuted} />}
-              onPress={() => {}}
+              onPress={() => router.push('/settings/profile')}
               titleStyle={styles.listItemTitle}
               descriptionStyle={styles.listItemDescription}
               style={styles.listItem}
@@ -91,7 +91,7 @@ export default function SettingsScreen() {
             <Divider style={styles.divider} />
             <List.Item
               title="Business"
-              description="View business details"
+              description="View and update business details"
               left={(props) => (
                 <List.Icon
                   {...props}
@@ -99,7 +99,7 @@ export default function SettingsScreen() {
                 />
               )}
               right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.textMuted} />}
-              onPress={() => {}}
+              onPress={() => router.push('/settings/business')}
               titleStyle={styles.listItemTitle}
               descriptionStyle={styles.listItemDescription}
               style={styles.listItem}
@@ -155,7 +155,31 @@ export default function SettingsScreen() {
                 />
               )}
               right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.textMuted} />}
-              onPress={() => {}}
+              onPress={() => router.push('/settings/business')}
+              titleStyle={styles.listItemTitle}
+              descriptionStyle={styles.listItemDescription}
+              style={styles.listItem}
+            />
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text variant="titleSmall" style={styles.sectionTitle}>
+            SYNC & DATA
+          </Text>
+
+          <View style={styles.card}>
+            <List.Item
+              title="Sync Status"
+              description="View synchronization status"
+              left={(props) => (
+                <List.Icon
+                  {...props}
+                  icon={() => <MaterialCommunityIcons name="sync" size={24} color={colors.primary} />}
+                />
+              )}
+              right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.textMuted} />}
+              onPress={() => router.push('/settings/sync-status')}
               titleStyle={styles.listItemTitle}
               descriptionStyle={styles.listItemDescription}
               style={styles.listItem}

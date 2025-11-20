@@ -37,6 +37,8 @@ export const API_CONFIG = {
       PULL: '/api/sync/pull',
       CONFLICTS: '/api/sync/conflicts',
       STATUS: '/api/sync/status',
+      DEDUPLICATE: '/api/sync/deduplicate',
+      CLEANUP: '/api/sync/cleanup',
     },
     DEVICES: {
       REGISTER: '/api/devices/register',
