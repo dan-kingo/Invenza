@@ -19,7 +19,7 @@ export default function SettingsScreen() {
     try {
       await logout();
       setLogoutDialogVisible(false);
-      router.replace('/');
+      router.replace('/auth/login');
     } catch (error: any) {
       Alert.alert('Error', error.message || 'Failed to logout');
     } finally {

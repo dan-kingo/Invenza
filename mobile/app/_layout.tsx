@@ -6,12 +6,13 @@ import { AuthProvider } from '../contexts/AuthContext';
 import { theme } from '../theme/theme';
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
 function RootNavigator() {
   const router = useRouter();
 
   useEffect(() => {
-    SystemUI.setBackgroundColorAsync('#0E1B18');
+    SystemUI.setBackgroundColorAsync('#1E293B');
   }, []);
 
   useEffect(() => {
@@ -51,6 +52,7 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <PaperProvider theme={theme}>
+       <StatusBar style="light" backgroundColor="#000" />
       <AuthProvider>
         <RootNavigator />
       </AuthProvider>
