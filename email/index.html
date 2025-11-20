@@ -175,6 +175,14 @@
         </div>
         
         <div class="content">
+            <!-- Loading State -->
+            <div id="loading-state">
+                <div class="message">
+                    <div class="loader" style="margin: 0 auto;"></div>
+                    <p>Processing your request...</p>
+                </div>
+            </div>
+
             <!-- Email Verification Success -->
             <div id="email-verification-success" class="hidden">
                 <div class="success-icon">✓</div>
@@ -183,7 +191,7 @@
                     <p>Your email has been verified. You can now sign in to the Invenza mobile app with your account.</p>
                 </div>
                 <div class="app-redirect">
-                    <p>Go to the <a href="#">Invenza Mobile App</a> to sign in</p>
+                    <p>Go to the <a href="#" id="app-link">Invenza Mobile App</a> to sign in</p>
                 </div>
             </div>
 
@@ -231,7 +239,7 @@
                     <p>Your password has been reset. You can now sign in to the Invenza mobile app with your new password.</p>
                 </div>
                 <div class="app-redirect">
-                    <p>Go to the <a href="#">Invenza Mobile App</a> to sign in</p>
+                    <p>Go to the <a href="#" id="reset-app-link">Invenza Mobile App</a> to sign in</p>
                 </div>
             </div>
 
@@ -250,13 +258,11 @@
     </div>
 
     <script>
-        // Get URL parameters
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        const action = window.location.pathname.includes('verify-email') ? 'verify-email' : 
-                      window.location.pathname.includes('reset-password') ? 'reset-password' : null;
+        // API Base URL - Update this to your backend URL
+        const API_BASE_URL = 'https://your-backend-domain.com'; // Change to your actual backend URL
 
         // DOM Elements
+        const loadingState = document.getElementById('loading-state');
         const emailVerificationSuccess = document.getElementById('email-verification-success');
         const emailVerificationError = document.getElementById('email-verification-error');
         const passwordResetForm = document.getElementById('password-reset-form');
@@ -268,23 +274,30 @@
         const errorDetail = document.getElementById('error-detail');
         const passwordErrorDetail = document.getElementById('password-error-detail');
 
-        // API Base URL - Update this to your backend URL
-        const API_BASE_URL = 'http://localhost:5000'; // Change to your backend URL
+        // Get URL parameters and path
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const currentPath = window.location.pathname;
 
-        // Initialize page based on action
+        // Initialize page based on URL path
         document.addEventListener('DOMContentLoaded', function() {
-            if (action === 'verify-email') {
+            if (currentPath.includes('/verify-email')) {
                 verifyEmail(token);
-            } else if (action === 'reset-password') {
+            } else if (currentPath.includes('/reset-password')) {
                 showPasswordResetForm();
             } else {
-                // Default to email verification error if no valid action
+                // Default to email verification error if no valid path
                 showEmailVerificationError('Invalid link');
             }
         });
 
         // Verify Email Function
         async function verifyEmail(token) {
+            if (!token) {
+                showEmailVerificationError('Invalid verification token');
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_BASE_URL}/api/auth/verify-email?token=${token}`, {
                     method: 'GET',
@@ -293,6 +306,8 @@
                     }
                 });
 
+                hideLoading();
+                
                 if (response.ok) {
                     showEmailVerificationSuccess();
                 } else {
@@ -301,6 +316,7 @@
                 }
             } catch (error) {
                 console.error('Error verifying email:', error);
+                hideLoading();
                 showEmailVerificationError('Network error. Please try again.');
             }
         }
@@ -320,6 +336,11 @@
 
         // Show Password Reset Form
         function showPasswordResetForm() {
+            hideLoading();
+            if (!token) {
+                showPasswordResetError('Invalid reset token');
+                return;
+            }
             hideAllSections();
             passwordResetForm.classList.remove('hidden');
         }
@@ -337,8 +358,14 @@
             passwordResetError.classList.remove('hidden');
         }
 
+        // Hide Loading State
+        function hideLoading() {
+            loadingState.classList.add('hidden');
+        }
+
         // Hide All Sections
         function hideAllSections() {
+            loadingState.classList.add('hidden');
             emailVerificationSuccess.classList.add('hidden');
             emailVerificationError.classList.add('hidden');
             passwordResetForm.classList.add('hidden');

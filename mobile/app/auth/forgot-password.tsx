@@ -43,9 +43,7 @@ export default function ForgotPasswordScreen() {
           style={StyleSheet.absoluteFillObject}
         />
         <View style={styles.successContent}>
-          <Text variant="displaySmall" style={styles.successIcon}>
-            ✓
-          </Text>
+          
           <Text variant="headlineMedium" style={styles.successTitle}>
             Email Sent!
           </Text>

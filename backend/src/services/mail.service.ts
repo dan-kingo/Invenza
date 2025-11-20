@@ -11,9 +11,8 @@ export const mailer = nodemailer.createTransport({
     pass: process.env.SMTP_PASS
   }
 });
-
 export async function sendVerificationEmail(email: string, token: string) {
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+  const frontendUrl = process.env.FRONTEND_URL || "https://invenza-ten.vercel.app";
   const verifyUrl = `${frontendUrl}/verify-email?token=${token}`;
 
   await mailer.sendMail({
@@ -22,13 +21,13 @@ export async function sendVerificationEmail(email: string, token: string) {
     html: `
       <h2>Verify Your Email</h2>
       <p>Please click the link below to verify your email:</p>
-      <a href="${verifyUrl}">${verifyUrl}</a>
+      <a href="${verifyUrl}">Verify Email</a>
     `
   });
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {
-  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
+  const frontendUrl = process.env.FRONTEND_URL || "https://invenza-ten.vercel.app";
   const link = `${frontendUrl}/reset-password?token=${token}`;
 
   await mailer.sendMail({

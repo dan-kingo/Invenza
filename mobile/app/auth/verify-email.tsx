@@ -107,7 +107,7 @@ export default function VerifyEmailScreen() {
               contentStyle={styles.buttonContent}
             >
               Back to Login
-            </Button>
+            </Button> 
           </>
         )}
       </View>
