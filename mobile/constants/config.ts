@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  BASE_URL: 'http://localhost:5000',
+  BASE_URL: 'http://192.168.1.7:5000',
   TIMEOUT: 30000,
   ENDPOINTS: {
     AUTH: {

@@ -43,7 +43,7 @@ export default function WelcomeScreen() {
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <LinearGradient
-              colors={colors.gradient.primary}
+              colors={colors.gradient.primary as unknown as readonly [string, string, ...string[]]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.logoGradient}
@@ -72,11 +72,11 @@ export default function WelcomeScreen() {
             title="Smart Tags"
             description="NFC/QR code integration for quick access"
           />
-          <FeatureItem
+          {/* <FeatureItem
             icon="📊"
             title="Analytics"
             description="Insights and reports at your fingertips"
-          />
+          /> */}
           <FeatureItem
             icon="🔔"
             title="Alerts"
