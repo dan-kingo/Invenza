@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Invenza</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #F8FAFC;
+    }
+
+    .container {
+      max-width: 450px;
+      width: 90%;
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 24px;
+      padding: 48px 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(139, 92, 246, 0.2);
+    }
+
+    .logo {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 24px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #8B5CF6, #06B6D4);
+      box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #CBD5E1;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #CBD5E1;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 16px;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid #475569;
+      border-radius: 12px;
+      color: #F8FAFC;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #8B5CF6;
+    }
+
+    .error-message {
+      color: #EF4444;
+      font-size: 14px;
+      margin-top: 8px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .button {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #8B5CF6, #06B6D4);
+      color: #F8FAFC;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 8px;
+    }
+
+    .button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+    }
+
+    .button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .text-center {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+      color: #CBD5E1;
+    }
+
+    a {
+      color: #06B6D4;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">I</div>
+    <h1>Welcome Back</h1>
+    <p class="subtitle">Sign in to your account</p>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="your@email.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required>
+      </div>
+
+      <div class="error-message" id="errorMessage"></div>
+
+      <button type="submit" class="button" id="submitBtn">Sign In</button>
+    </form>
+
+    <div class="text-center">
+      <a href="/forgot-password.html">Forgot Password?</a>
+    </div>
+  </div>
+
+  <script>
+    function showError(message) {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.textContent = message;
+      errorEl.classList.add('show');
+    }
+
+    function hideError() {
+      const errorEl = document.getElementById('errorMessage');
+      errorEl.classList.remove('show');
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const submitBtn = document.getElementById('submitBtn');
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Signing in...';
+
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem('accessToken', data.accessToken);
+          localStorage.setItem('refreshToken', data.refreshToken);
+          window.location.href = '/dashboard.html';
+        } else {
+          showError(data.error || 'Login failed');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Sign In';
+        }
+      } catch (error) {
+        showError('Network error. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Sign In';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -80,6 +80,13 @@ export class AuthController {
       const isMatch = await comparePassword(password, user.passwordHash);
       if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
+      if (!user.isVerified && user.email) {
+        return res.status(403).json({
+          error: "Please verify your email before logging in",
+          isVerified: false
+        });
+      }
+
       const accessToken = generateAccessToken(user._id.toString());
       const refreshToken = generateRefreshToken(user._id.toString());
 

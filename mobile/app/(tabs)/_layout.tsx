@@ -54,6 +54,8 @@ export default function TabLayout() {
           fontWeight: '600',
           marginTop: 4,
         },
+        tabBarActiveBackgroundColor: colors.surface,
+        tabBarInactiveBackgroundColor: colors.surface,
         tabBarItemStyle: {
           paddingVertical: 4,
         },

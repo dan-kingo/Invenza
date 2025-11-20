@@ -13,7 +13,7 @@ export const mailer = nodemailer.createTransport({
 });
 
 export async function sendVerificationEmail(email: string, token: string) {
-  const verifyUrl = `http://localhost:5000/api/auth/verify-email?token=${token}`;
+  const verifyUrl = `http://localhost:5000/verify-email.html?token=${token}`;
 
   await mailer.sendMail({
     to: email,
@@ -27,7 +27,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 }
 
 export async function sendPasswordResetEmail(email: string, token: string) {
-    const link = `http://localhost:5000/api/auth/reset-password?token=${token}`;
+    const link = `http://localhost:5000/reset-password.html?token=${token}`;
 
   await mailer.sendMail({
     to: email,
