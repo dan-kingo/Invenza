@@ -15,7 +15,7 @@ export default function WelcomeScreen() {
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      router.replace('/(tabs)/home');
+      router.replace('/(tabs)');
     }
   }, [isAuthenticated, isLoading]);
 
