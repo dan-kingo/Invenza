@@ -110,7 +110,7 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity
             style={styles.notificationButton}
-            onPress={() => router.push('/(tabs)/settings')}
+            onPress={() => router.push('/notifications')}
           >
             {unreadNotifications > 0 && (
               <View style={styles.notificationBadge}>

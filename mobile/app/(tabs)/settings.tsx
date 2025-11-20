@@ -131,7 +131,7 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             <List.Item
               title="Notifications"
-              description="Manage notification settings"
+              description="View and manage notifications"
               left={(props) => (
                 <List.Icon
                   {...props}
@@ -139,7 +139,7 @@ export default function SettingsScreen() {
                 />
               )}
               right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.textMuted} />}
-              onPress={() => {}}
+              onPress={() => router.push('/notifications')}
               titleStyle={styles.listItemTitle}
               descriptionStyle={styles.listItemDescription}
               style={styles.listItem}
