@@ -57,47 +57,52 @@ export class AuthController {
 
   // LOGIN
   static async login(req: Request, res: Response) {
-    try {
-      const { email, phone, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-      const user = await User.findOne({
-        $or: [{ email }, { phone }]
+    const user = await User.findOne({
+      email
+    });
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (user.isSuspended) {
+      return res.status(403).json({
+        error: "Account suspended",
+        reason: user.suspensionReason,
+        suspendedAt: user.suspendedAt
       });
-
-      if (!user) return res.status(404).json({ error: "User not found" });
-
-      if (user.isSuspended) {
-        return res.status(403).json({
-          error: "Account suspended",
-          reason: user.suspensionReason,
-          suspendedAt: user.suspendedAt
-        });
-      }
-
-      if (!user.passwordHash)
-        return res.status(400).json({ error: "Use social login instead" });
-
-      const isMatch = await comparePassword(password, user.passwordHash);
-      if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
-
-      if (!user.isVerified && user.email) {
-        return res.status(403).json({
-          error: "Please verify your email before logging in",
-          isVerified: false
-        });
-      }
-
-      const accessToken = generateAccessToken(user._id.toString());
-      const refreshToken = generateRefreshToken(user._id.toString());
-
-      user.refreshTokens.push(refreshToken);
-      await user.save();
-
-      return res.json({ accessToken, refreshToken, user  });
-    } catch (err) {
-      return res.status(500).json({ error: "Login failed" });
     }
+
+    if (!user.passwordHash)
+      return res.status(400).json({ error: "Use social login instead" });
+
+    const isMatch = await comparePassword(password, user.passwordHash);
+    if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
+
+    if (!user.isVerified && user.email) {
+      return res.status(403).json({
+        error: "Please verify your email before logging in",
+        isVerified: false
+      });
+    }
+
+    const accessToken = generateAccessToken(user._id.toString());
+    const refreshToken = generateRefreshToken(user._id.toString());
+
+    user.refreshTokens.push(refreshToken);
+    
+    // ⚠️ MAKE SURE THIS HAS AWAIT ⚠️
+    await user.save(); // This line might be missing await
+
+    // ⚠️ ALSO CHECK IF YOU'RE RETURNING THE RESPONSE
+    return res.json({ accessToken, refreshToken, user });
+    
+  } catch (err) {
+    console.error('Login error:', err); // Add detailed error logging
+    return res.status(500).json({ error: "Login failed" });
   }
+}
 
   // EMAIL VERIFY
   static async verifyEmail(req: Request, res: Response) {
