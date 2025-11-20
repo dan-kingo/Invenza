@@ -9,6 +9,8 @@ import { colors } from '../../theme/colors';
 import { useAuth } from '../../contexts/AuthContext';
 import itemService from '../../services/item.service';
 import notificationService from '../../services/notification.service';
+import alertService from '../../services/alert.service';
+import alertService from '../../services/alert.service';
 
 interface DashboardStats {
   totalItems: number;
@@ -38,23 +40,39 @@ export default function HomeScreen() {
 
   const loadDashboardData = async () => {
     try {
-      const [items, lowStock, notifications] = await Promise.all([
+      const [items, alerts, notifications] = await Promise.all([
         itemService.listItems(),
-        itemService.listItems({ lowStock: true }),
+        alertService.getAlerts(false),
         notificationService.getUnreadCount(),
       ]);
 
       const categories = new Set(items.map((item: any) => item.category).filter(Boolean));
 
+      const lowStockCount = alerts.alerts.filter(
+        (alert: any) => alert.type === 'low_stock' || alert.type === 'out_of_stock'
+      ).length;
+
       setStats({
         totalItems: items.length,
-        lowStockItems: lowStock.length,
+        lowStockItems: lowStockCount,
         totalValue: items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0),
         categories: categories.size,
       });
 
       setRecentItems(items.slice(0, 5));
-      setLowStockAlerts(lowStock.slice(0, 3));
+
+      const lowStockItems = alerts.alerts
+        .filter((alert: any) => alert.type === 'low_stock' || alert.type === 'out_of_stock')
+        .slice(0, 3)
+        .map((alert: any) => ({
+          _id: alert.itemId._id,
+          name: alert.itemId.name,
+          quantity: alert.currentQuantity,
+          unit: alert.itemId.unit,
+          category: alert.itemId.category,
+        }));
+
+      setLowStockAlerts(lowStockItems);
       setUnreadNotifications(notifications.count);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -193,8 +211,12 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
             {lowStockAlerts.map((item) => (
-              <Card key={item._id} style={styles.alertCard}>
-                <Card.Content style={styles.alertCardContent}>
+              <TouchableOpacity
+                key={item._id}
+                onPress={() => router.push(`/stock/item-detail?id=${item._id}`)}
+              >
+                <Card style={styles.alertCard}>
+                  <Card.Content style={styles.alertCardContent}>
                   <View style={styles.alertIcon}>
                     <MaterialCommunityIcons name="alert" size={24} color={colors.error} />
                   </View>
@@ -210,10 +232,11 @@ export default function HomeScreen() {
                     icon="chevron-right"
                     iconColor={colors.textMuted}
                     size={20}
-                    onPress={() => {}}
+                    onPress={() => router.push(`/stock/item-detail?id=${item._id}`)}
                   />
                 </Card.Content>
               </Card>
+              </TouchableOpacity>
             ))}
           </View>
         )}
@@ -229,8 +252,12 @@ export default function HomeScreen() {
               </TouchableOpacity>
             </View>
             {recentItems.map((item) => (
-              <Card key={item._id} style={styles.itemCard}>
-                <Card.Content style={styles.itemCardContent}>
+              <TouchableOpacity
+                key={item._id}
+                onPress={() => router.push(`/stock/item-detail?id=${item._id}`)}
+              >
+                <Card style={styles.itemCard}>
+                  <Card.Content style={styles.itemCardContent}>
                   <View style={styles.itemIcon}>
                     <MaterialCommunityIcons name="package-variant" size={24} color={colors.primary} />
                   </View>
@@ -257,6 +284,7 @@ export default function HomeScreen() {
                   </View>
                 </Card.Content>
               </Card>
+              </TouchableOpacity>
             ))}
           </View>
         )}

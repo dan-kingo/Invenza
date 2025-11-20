@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput as RNTextInput } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput as RNTextInput, Image } from 'react-native';
 import { Text, Card, ActivityIndicator, Searchbar, Chip, FAB, Menu, IconButton } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -207,17 +207,21 @@ export default function StockScreen() {
                       end={{ x: 1, y: 1 }}
                       style={styles.cardGradient}
                     >
+                      {item.image && (
+                        <View style={styles.itemImageContainer}>
+                          <Image
+                            source={{ uri: item.image }}
+                            style={styles.itemImage}
+                            resizeMode="cover"
+                          />
+                        </View>
+                      )}
                       <View style={styles.cardHeader}>
                         <View style={[styles.statusBadge, { backgroundColor: status.color + '20' }]}>
                           <Text style={[styles.statusText, { color: status.color }]}>
                             {status.label}
                           </Text>
                         </View>
-                        {item.image && (
-                          <View style={styles.imageIndicator}>
-                            <MaterialCommunityIcons name="image" size={16} color={colors.primary} />
-                          </View>
-                        )}
                       </View>
 
                       <View style={styles.cardContent}>
@@ -357,6 +361,18 @@ const styles = StyleSheet.create({
   cardGradient: {
     padding: 16,
   },
+  itemImageContainer: {
+    width: '100%',
+    height: 120,
+    marginBottom: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: colors.surfaceVariant,
+  },
+  itemImage: {
+    width: '100%',
+    height: '100%',
+  },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -371,14 +387,6 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 11,
     fontWeight: '600',
-  },
-  imageIndicator: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.primary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   cardContent: {
     gap: 8,

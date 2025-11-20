@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Alert, TouchableOpacity, Image } from 'react-native';
 import { Text, Button, ActivityIndicator, Dialog, Portal, TextInput, SegmentedButtons, Card } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -132,6 +132,16 @@ export default function ItemDetailScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {item.image && (
+          <View style={styles.imageContainer}>
+            <Image
+              source={{ uri: item.image }}
+              style={styles.itemImage}
+              resizeMode="cover"
+            />
+          </View>
+        )}
+
         <View style={[styles.statusBadge, { backgroundColor: status.color + '20' }]}>
           <Text style={[styles.statusText, { color: status.color }]}>
             {status.label}
@@ -358,6 +368,18 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingBottom: 40,
+  },
+  imageContainer: {
+    width: '100%',
+    height: 250,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: colors.surfaceVariant,
+    marginBottom: 20,
+  },
+  itemImage: {
+    width: '100%',
+    height: '100%',
   },
   statusBadge: {
     paddingHorizontal: 16,
