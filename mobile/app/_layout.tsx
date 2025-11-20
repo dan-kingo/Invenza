@@ -7,12 +7,15 @@ import { theme } from '../theme/theme';
 import { useEffect } from "react";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { Platform, StatusBar as RNStatusBar, View } from 'react-native';
+import { colors } from '../theme/colors';
 
 function RootNavigator() {
   const router = useRouter();
 
   useEffect(() => {
-    SystemUI.setBackgroundColorAsync('#0F172A');
+    // ensure system bars match app surface color
+    SystemUI.setBackgroundColorAsync(colors.surface);
   }, []);
 
   useEffect(() => {
@@ -52,7 +55,18 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <PaperProvider theme={theme}>
-       <StatusBar style="light" backgroundColor="#0F172A" translucent={false} />
+      {/* Android: set a non-translucent status bar background so the color is visible */}
+      {Platform.OS === 'android' && (
+        <RNStatusBar backgroundColor={colors.surface} barStyle="light-content" translucent={false} />
+      )}
+      {/* expo StatusBar for consistent style across platforms */}
+      <StatusBar style="light" />
+
+      {/* top safe-area background for cases where status bar is translucent or iOS overlay */}
+      {Platform.OS === 'android' && (
+        <View style={{ height: RNStatusBar.currentHeight || 0, backgroundColor: colors.surface }} />
+      )}
+
       <AuthProvider>
         <RootNavigator />
       </AuthProvider>

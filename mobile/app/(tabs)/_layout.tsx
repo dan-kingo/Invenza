@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
+import { Platform, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { colors } from '../../theme/colors';
@@ -10,7 +10,7 @@ function TabBarIcon({ name, color, focused }: { name: any; color: string; focuse
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
-        { scale: withSpring(focused ? 1.2 : 1, { damping: 15, stiffness: 150 }) },
+        { scale: withSpring(focused ? 1.4 : 1, { damping: 15, stiffness: 150 }) },
         { translateY: withSpring(focused ? -2 : 0, { damping: 15, stiffness: 150 }) },
       ],
     };
@@ -65,6 +65,9 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name="home" color={color} focused={focused} />
           ),
+          tabBarLabel: ({ focused }) => (
+            <Text style={{ color: focused ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: '600', marginTop: 6 }}>Home</Text>
+          )
         }}
       />
       <Tabs.Screen
@@ -74,6 +77,9 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name="package-variant" color={color} focused={focused} />
           ),
+          tabBarLabel: ({ focused }) => (
+            <Text style={{ color: focused ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: '600', marginTop: 6 }}>Stock</Text>
+          )
         }}
       />
       <Tabs.Screen
@@ -83,6 +89,9 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name="qrcode-scan" color={color} focused={focused} />
           ),
+          tabBarLabel: ({ focused }) => (
+            <Text style={{ color: focused ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: '600', marginTop: 6 }}>Scan</Text>
+          )
         }}
       />
       <Tabs.Screen
@@ -92,6 +101,9 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name="chart-bar" color={color} focused={focused} />
           ),
+          tabBarLabel: ({ focused }) => (
+            <Text style={{ color: focused ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: '600', marginTop: 6 }}>Reports</Text>
+          )
         }}
       />
       <Tabs.Screen
@@ -101,6 +113,9 @@ export default function TabLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name="cog" color={color} focused={focused} />
           ),
+          tabBarLabel: ({ focused }) => (
+            <Text style={{ color: focused ? colors.primary : colors.textMuted, fontSize: 12, fontWeight: '600', marginTop: 6 }}>Settings</Text>
+          )
         }}
       />
     </Tabs>
