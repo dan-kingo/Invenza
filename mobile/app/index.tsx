@@ -1,13 +1,11 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet, Image, Dimensions } from 'react-native';
+import { View, StyleSheet, BackHandler } from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { colors } from '../theme/colors';
 import { useAuth } from '../contexts/AuthContext';
-
-const { width, height } = Dimensions.get('window');
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -18,6 +16,14 @@ export default function WelcomeScreen() {
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, isLoading]);
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, []);
 
   if (isLoading) {
     return (

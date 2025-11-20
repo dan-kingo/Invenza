@@ -5,13 +5,35 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "invenza",
     "userInterfaceStyle": "automatic",
+    "intentFilters": [
+      {
+        "action": "VIEW",
+        "autoVerify": true,
+        "data": [
+          {
+            "scheme": "https",
+            "host": "*.invenza.app",
+            "pathPrefix": "/verify-email"
+          },
+          {
+            "scheme": "https",
+            "host": "*.invenza.app",
+            "pathPrefix": "/reset-password"
+          }
+        ],
+        "category": ["BROWSABLE", "DEFAULT"]
+      }
+    ],
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.invenza.mobile",
+      "associatedDomains": ["applinks:invenza.app", "applinks:www.invenza.app"]
     },
     "android": {
+      "package": "com.invenza.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
