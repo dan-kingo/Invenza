@@ -18,7 +18,7 @@ export interface RegisterTagData {
 }
 
 class TagService {
-  async registerTag(data: RegisterTagData): Promise<{ message: string; tag: Tag }> {
+  async registerTag(data: RegisterTagData): Promise<{ message: string; tag: Tag, tagId: string, qrCode: string }> {
     return await apiService.post(API_CONFIG.ENDPOINTS.TAGS.REGISTER, data);
   }
 

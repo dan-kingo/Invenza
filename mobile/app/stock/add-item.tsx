@@ -45,29 +45,29 @@ export default function AddItemScreen() {
   const removeImage = () => {
     setImageUri(null);
   };
+const handleSubmit = async () => {
+  if (!name || !quantity) {
+    Alert.alert('Error', 'Please fill in required fields');
+    return;
+  }
 
-  const handleSubmit = async () => {
-    if (!name || !quantity) {
-      Alert.alert('Error', 'Please fill in required fields');
-      return;
+  setLoading(true);
+  try {
+    let imageFile;
+    if (imageUri) {
+      const filename = imageUri.split('/').pop() || 'image.jpg';
+      const match = /\.([\w]+)$/.exec(filename);
+      const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+      imageFile = {
+        uri: imageUri,
+        name: filename,
+        type,
+      };
     }
 
-    setLoading(true);
-    try {
-      let imageFile;
-      if (imageUri) {
-        const filename = imageUri.split('/').pop() || 'image.jpg';
-        const match = /\.([\w]+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : 'image/jpeg';
-
-        imageFile = {
-          uri: imageUri,
-          name: filename,
-          type,
-        };
-      }
-
-      await itemService.createItem({
+    const result = await itemService.createItem(
+      {
         name,
         sku: sku || undefined,
         description: description || undefined,
@@ -76,17 +76,39 @@ export default function AddItemScreen() {
         category: category || undefined,
         location: location || undefined,
         minThreshold: minThreshold ? parseInt(minThreshold) : undefined,
-      }, imageFile);
+      },
+      imageFile
+    );
 
-      Alert.alert('Success', 'Item added successfully', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
-    } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.error || 'Failed to add item');
-    } finally {
-      setLoading(false);
-    }
-  };
+    // -----------------------------------------
+    // 🔥 NEW: Show Tag + QR Code Popup
+    // -----------------------------------------
+    Alert.alert(
+      "Item Created",
+      `Tag created: ${result.tagId}`,
+      [
+        {
+          text: "View QR",
+          onPress: () => {
+            router.push(
+              `/stock/print-qr?tag=${result.tagId}&qr=${encodeURIComponent(result.qrCode)}`
+            );
+          }
+        },
+        {
+          text: "OK",
+          onPress: () => router.back(),
+        }
+      ]
+    );
+
+  } catch (error: any) {
+    Alert.alert('Error', error.response?.data?.error || 'Failed to add item');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <View style={styles.container}>

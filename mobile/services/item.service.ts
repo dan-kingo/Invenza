@@ -43,7 +43,7 @@ class ItemService {
     return await apiService.get(API_CONFIG.ENDPOINTS.ITEMS.LIST, { params });
   }
 
-  async createItem(data: CreateItemData, imageFile?: any): Promise<{ message: string; item: Item }> {
+  async createItem(data: CreateItemData, imageFile?: any): Promise<{ message: string; item: Item, tagId: string, qrCode: string }> {
     if (imageFile) {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
@@ -87,7 +87,7 @@ class ItemService {
     return await apiService.post(API_CONFIG.ENDPOINTS.ITEMS.ADJUST(id), data);
   }
 
-  async scanItem(tagId: string): Promise<{ message: string; tag: any; item: Item }> {
+  async scanItem(tagId: string): Promise<{ message: string; tag: any; item: Item , tagId: string, qrCode: string}> {
     return await apiService.post(API_CONFIG.ENDPOINTS.ITEMS.SCAN(''), { tagId });
   }
 

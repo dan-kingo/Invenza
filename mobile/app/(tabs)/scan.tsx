@@ -24,6 +24,7 @@ export default function ScanScreen() {
   const [registering, setRegistering] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'item' | 'box'>('all');
 
+  
   useEffect(() => {
     loadTags();
   }, []);
@@ -70,8 +71,10 @@ export default function ScanScreen() {
     }
   };
 
-  const handleScan = async () => {
-    if (!tagId.trim()) {
+ const handleScan = async (incomingTagId?: string) => {
+  const id = (incomingTagId || tagId).trim();
+
+  if (!id) {
       Alert.alert('Error', 'Please enter a tag ID');
       return;
     }
@@ -81,22 +84,32 @@ export default function ScanScreen() {
     setScannedTag(null);
 
     try {
-      const result = await itemService.scanItem(tagId.trim());
+      const result = await itemService.scanItem(id);
 
-      if (result.item) {
-        setScannedItem(result.item);
-        setScannedTag(result.tag);
-        Alert.alert('Success', 'Item found!', [
-          {
-            text: 'View Details',
-            onPress: () => router.push(`/stock/item-detail?id=${result.item._id}`),
-          },
-          { text: 'OK', style: 'cancel' },
-        ]);
-      } else {
-        setScannedTag(result.tag);
-        Alert.alert('Info', result.message || 'Tag found but not attached to any item');
-      }
+
+   if (result.item) {
+  setScannedItem(result.item);
+
+  Alert.alert(
+    "Item Found",
+    `Tag: ${result.tagId}`,
+    [
+      {
+        text: "View Item",
+        onPress: () => router.push(`/stock/item-detail?id=${result.item._id}`)
+      },
+      {
+        text: "View QR",
+        onPress: () =>
+          router.push(`/stock/print-qr?tag=${result.tagId}`)
+      },
+      { text: "OK" }
+    ]
+  );
+} else {
+  Alert.alert("Tag Found", "But no item attached yet");
+}
+
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.error || 'Failed to scan tag');
     } finally {
@@ -173,7 +186,7 @@ export default function ScanScreen() {
 
           <Button
             mode="contained"
-            onPress={handleScan}
+            onPress={() => handleScan()}
             loading={scanning}
             disabled={scanning || !tagId.trim()}
             style={styles.scanButton}
@@ -300,7 +313,11 @@ export default function ScanScreen() {
             <View style={styles.tagsGrid}>
               {filteredTags.map((tag) => (
                 <Card key={tag._id} style={styles.tagCard}>
-                  <TouchableOpacity onPress={() => setTagId(tag.tagId)}>
+                 <TouchableOpacity onPress={() => {
+  setTagId(tag.tagId);
+  handleScan(tag.tagId); // auto scan
+}}>
+
                     <Card.Content style={styles.tagCardContent}>
                       <View style={styles.tagCardHeader}>
                         <MaterialCommunityIcons
