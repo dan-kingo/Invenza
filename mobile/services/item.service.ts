@@ -88,7 +88,7 @@ class ItemService {
   }
 
   async scanItem(tagId: string): Promise<{ message: string; tag: any; item: Item , tagId: string, qrCode: string}> {
-    return await apiService.post(API_CONFIG.ENDPOINTS.ITEMS.SCAN(''), { tagId });
+    return await apiService.post('/api/items/scan', { tagId });
   }
 
   async getItemEvents(id: string): Promise<any[]> {
