@@ -530,11 +530,11 @@ const styles = StyleSheet.create({
   },
   categoryChip: {
     backgroundColor: colors.accent + '20',
-    height: 28,
+    height: 38,
   },
   categoryChipText: {
     color: colors.accent,
-    fontSize: 11,
+    fontSize: 16,
   },
   itemSku: {
     color: colors.textMuted,
@@ -642,6 +642,7 @@ const styles = StyleSheet.create({
   categoryName: {
     color: colors.text,
     fontWeight: 'bold',
+    
   },
   categoryStats: {
     flexDirection: 'row',

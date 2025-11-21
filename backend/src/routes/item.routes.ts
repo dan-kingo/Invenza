@@ -10,7 +10,7 @@ router.get("/", auth(), ItemController.listItems);
 router.get("/:id", auth(), ItemController.getItem);
 router.put("/:id", auth(), upload.single("image"), ItemController.updateItem);
 router.post("/:id/adjust", auth(), ItemController.adjustQuantity);
-router.post("/:id/scan", auth(), ItemController.scanItem);
+router.post("/scan", auth(), ItemController.scanItem);
 router.get("/:id/events", auth(), ItemController.getItemEvents);
 
 export default router;
