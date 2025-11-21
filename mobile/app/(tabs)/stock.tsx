@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, TextInput as RNTextInput, Image } from 'react-native';
-import { Text, Card, ActivityIndicator, Searchbar, Chip, FAB, Menu, IconButton } from 'react-native-paper';
+import { Text, Card, ActivityIndicator, Searchbar, Chip, FAB, IconButton } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -43,7 +43,9 @@ export default function StockScreen() {
     }
   };
 
-  const filterItems = () => {
+  const computeFilteredItems = (overrideShowLowStock?: boolean) => {
+    const low = typeof overrideShowLowStock === 'boolean' ? overrideShowLowStock : showLowStock;
+
     let filtered = [...items];
 
     if (searchQuery) {
@@ -57,14 +59,18 @@ export default function StockScreen() {
       filtered = filtered.filter(item => item.category === selectedCategory);
     }
 
-    if (showLowStock) {
+    if (low) {
       filtered = filtered.filter(item => {
         const threshold = item.minThreshold || 0;
         return threshold > 0 && item.quantity <= threshold;
       });
     }
 
-    setFilteredItems(filtered);
+    return filtered;
+  };
+
+  const filterItems = () => {
+    setFilteredItems(computeFilteredItems());
   };
 
   const onRefresh = () => {
@@ -74,6 +80,19 @@ export default function StockScreen() {
 
   const handleCategoryFilter = (category: string | null) => {
     setSelectedCategory(category);
+  };
+
+  const toggleLowStockFilter = () => {
+    const next = !showLowStock;
+    // update state
+    setShowLowStock(next);
+
+    // immediately compute and apply filtered items using the new value
+    const filtered = computeFilteredItems(next);
+    setFilteredItems(filtered);
+
+    // close menu after a tiny delay to avoid race with menu click handling
+    setTimeout(() => setMenuVisible(false), 50);
   };
 
   const getStockStatus = (item: Item) => {
@@ -103,28 +122,6 @@ export default function StockScreen() {
         <Text variant="headlineMedium" style={styles.headerTitle}>
           Stock Management
         </Text>
-        <Menu
-          visible={menuVisible}
-          onDismiss={() => setMenuVisible(false)}
-          anchor={
-            <IconButton
-              icon="filter-variant"
-              iconColor={colors.text}
-              size={24}
-              onPress={() => setMenuVisible(true)}
-            />
-          }
-          contentStyle={styles.menu}
-        >
-          <Menu.Item
-            onPress={() => {
-              setShowLowStock(!showLowStock);
-              setMenuVisible(false);
-            }}
-            title={showLowStock ? 'Show All Stock' : 'Show Low Stock Only'}
-            leadingIcon={showLowStock ? 'check' : 'alert'}
-          />
-        </Menu>
       </View>
 
       <View style={styles.searchContainer}>
@@ -137,6 +134,50 @@ export default function StockScreen() {
           inputStyle={styles.searchInput}
           placeholderTextColor={colors.textMuted}
         />
+      </View>
+
+      <View style={styles.filterRow}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={[
+            styles.filterButton,
+            showLowStock ? styles.filterButtonActive : styles.filterButtonInactive,
+          ]}
+          onPress={() => {
+            setShowLowStock(true);
+            setFilteredItems(computeFilteredItems(true));
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Filter low stock"
+        >
+          <MaterialCommunityIcons
+            name="alert"
+            size={18}
+            color={showLowStock ? '#fff' : colors.text}
+          />
+          <Text style={[styles.filterLabel, showLowStock ? styles.filterLabelActive : {}]}>Low Stock</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={[
+            styles.filterButton,
+            !showLowStock ? styles.filterButtonActive : styles.filterButtonInactive,
+          ]}
+          onPress={() => {
+            setShowLowStock(false);
+            setFilteredItems(computeFilteredItems(false));
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Show all items"
+        >
+          <MaterialCommunityIcons
+            name="format-list-bulleted"
+            size={18}
+            color={!showLowStock ? '#fff' : colors.text}
+          />
+          <Text style={[styles.filterLabel, !showLowStock ? styles.filterLabelActive : {}]}>Show All</Text>
+        </TouchableOpacity>
       </View>
 
       {categories.length > 0 && (
@@ -290,6 +331,42 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontWeight: 'bold',
   },
+  headerButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    marginBottom: 12,
+    gap: 16,
+  },
+  filterButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: colors.surfaceVariant,
+  },
+  filterButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterButtonInactive: {
+    backgroundColor: 'transparent',
+  },
+  filterLabel: {
+    fontSize: 13,
+    marginLeft: 8,
+    color: colors.text,
+  },
+  filterLabelActive: {
+    color: '#fff',
+  },
   menu: {
     backgroundColor: colors.surface,
   },
@@ -349,12 +426,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   itemsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: 'column',
     gap: 12,
   },
   itemCard: {
-    width: '48%',
+    width: '100%',
   },
   card: {
     backgroundColor: 'transparent',
@@ -366,7 +442,7 @@ const styles = StyleSheet.create({
   },
   itemImageContainer: {
     width: '100%',
-    height: 120,
+    height: 240,
     marginBottom: 12,
     borderRadius: 12,
     overflow: 'hidden',
@@ -428,7 +504,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 24,
-    bottom: 90,
+    bottom: 10,
     backgroundColor: colors.primary,
   },
 });
