@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { colors } from '../../theme/colors';
@@ -26,26 +27,34 @@ function TabBarIcon({ name, color, focused }: { name: any; color: string; focuse
 }
 
 export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = insets.bottom ?? 0;
+
+  const baseHeight = Platform.OS === 'ios' ? 88 : 78;
+  const basePaddingBottom = Platform.OS === 'ios' ? 24 : 12;
+
+  const tabBarStyle = {
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.border + '80',
+    marginBottom: 0,
+    height: baseHeight + bottomInset,
+    paddingBottom: basePaddingBottom + bottomInset,
+    paddingTop: 12,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  };
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopWidth: 1,
-          borderTopColor: colors.border + '80',
-          marginBottom: Platform.OS === 'ios' ? 6 : 2,
-          height: Platform.OS === 'ios' ? 88 : 78,
-          paddingBottom: Platform.OS === 'ios' ? 24 : 12,
-          paddingTop: 12,
-          elevation: 8,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-        },
+        tabBarStyle,
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '600',
