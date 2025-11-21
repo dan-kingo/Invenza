@@ -1,18 +1,74 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Alert, ScrollView } from 'react-native';
-import { Text, TextInput, Button, Card } from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Alert, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
+import { Text, TextInput, Button, Card, FAB, Portal, Dialog, SegmentedButtons, Chip, ActivityIndicator } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors } from '../../theme/colors';
 import itemService from '../../services/item.service';
+import tagService, { Tag } from '../../services/tag.service';
 
 export default function ScanScreen() {
   const router = useRouter();
   const [tagId, setTagId] = useState('');
   const [scanning, setScanning] = useState(false);
   const [scannedItem, setScannedItem] = useState<any>(null);
+  const [scannedTag, setScannedTag] = useState<any>(null);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [loadingTags, setLoadingTags] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [registerDialogVisible, setRegisterDialogVisible] = useState(false);
+  const [newTagId, setNewTagId] = useState('');
+  const [newTagType, setNewTagType] = useState<'item' | 'box'>('item');
+  const [registering, setRegistering] = useState(false);
+  const [filterType, setFilterType] = useState<'all' | 'item' | 'box'>('all');
+
+  useEffect(() => {
+    loadTags();
+  }, []);
+
+  const loadTags = async () => {
+    try {
+      const data = await tagService.listTags();
+      setTags(data);
+    } catch (error) {
+      console.error('Failed to load tags:', error);
+    } finally {
+      setLoadingTags(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadTags();
+    setRefreshing(false);
+  };
+
+  const handleRegisterTag = async () => {
+    if (!newTagId.trim()) {
+      Alert.alert('Error', 'Please enter a tag ID');
+      return;
+    }
+
+    setRegistering(true);
+    try {
+      await tagService.registerTag({
+        tagId: newTagId.trim(),
+        type: newTagType,
+      });
+
+      Alert.alert('Success', 'Tag registered successfully');
+      setRegisterDialogVisible(false);
+      setNewTagId('');
+      setNewTagType('item');
+      loadTags();
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.error || 'Failed to register tag');
+    } finally {
+      setRegistering(false);
+    }
+  };
 
   const handleScan = async () => {
     if (!tagId.trim()) {
@@ -22,12 +78,14 @@ export default function ScanScreen() {
 
     setScanning(true);
     setScannedItem(null);
+    setScannedTag(null);
 
     try {
       const result = await itemService.scanItem(tagId.trim());
 
       if (result.item) {
         setScannedItem(result.item);
+        setScannedTag(result.tag);
         Alert.alert('Success', 'Item found!', [
           {
             text: 'View Details',
@@ -36,6 +94,7 @@ export default function ScanScreen() {
           { text: 'OK', style: 'cancel' },
         ]);
       } else {
+        setScannedTag(result.tag);
         Alert.alert('Info', result.message || 'Tag found but not attached to any item');
       }
     } catch (error: any) {
@@ -44,6 +103,11 @@ export default function ScanScreen() {
       setScanning(false);
     }
   };
+
+  const filteredTags = tags.filter((tag) => {
+    if (filterType === 'all') return true;
+    return tag.type === filterType;
+  });
 
   return (
     <View style={styles.container}>
@@ -58,6 +122,14 @@ export default function ScanScreen() {
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
       >
         <View style={styles.header}>
           <Text variant="headlineLarge" style={styles.title}>
@@ -182,7 +254,164 @@ export default function ScanScreen() {
             </Text>
           </View>
         </View>
+
+        <View style={styles.tagsSection}>
+          <View style={styles.tagsSectionHeader}>
+            <Text variant="titleLarge" style={styles.sectionTitle}>
+              Registered Tags
+            </Text>
+            <SegmentedButtons
+              value={filterType}
+              onValueChange={(value) => setFilterType(value as 'all' | 'item' | 'box')}
+              buttons={[
+                { value: 'all', label: 'All' },
+                { value: 'item', label: 'Item' },
+                { value: 'box', label: 'Box' },
+              ]}
+              style={styles.filterButtons}
+              theme={{
+                colors: {
+                  secondaryContainer: colors.primary,
+                  onSecondaryContainer: colors.text,
+                },
+              }}
+            />
+          </View>
+
+          {loadingTags ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : filteredTags.length === 0 ? (
+            <Card style={styles.emptyCard}>
+              <Card.Content style={styles.emptyContent}>
+                <MaterialCommunityIcons name="tag-off" size={48} color={colors.textMuted} />
+                <Text variant="titleMedium" style={styles.emptyTitle}>
+                  No Tags Found
+                </Text>
+                <Text variant="bodyMedium" style={styles.emptyMessage}>
+                  {filterType === 'all'
+                    ? 'Register your first tag to get started'
+                    : `No ${filterType} tags registered yet`}
+                </Text>
+              </Card.Content>
+            </Card>
+          ) : (
+            <View style={styles.tagsGrid}>
+              {filteredTags.map((tag) => (
+                <Card key={tag._id} style={styles.tagCard}>
+                  <TouchableOpacity onPress={() => setTagId(tag.tagId)}>
+                    <Card.Content style={styles.tagCardContent}>
+                      <View style={styles.tagCardHeader}>
+                        <MaterialCommunityIcons
+                          name={tag.type === 'item' ? 'tag' : 'package-variant'}
+                          size={24}
+                          color={colors.primary}
+                        />
+                        <Chip
+                          style={[
+                            styles.tagTypeChip,
+                            tag.type === 'item' ? styles.itemTypeChip : styles.boxTypeChip
+                          ]}
+                          textStyle={styles.tagTypeChipText}
+                        >
+                          {tag.type}
+                        </Chip>
+                      </View>
+                      <Text variant="bodyLarge" style={styles.tagIdText} numberOfLines={1}>
+                        {tag.tagId}
+                      </Text>
+                      {tag.attachedItemId && (
+                        <View style={styles.attachedIndicator}>
+                          <MaterialCommunityIcons name="link-variant" size={16} color={colors.success} />
+                          <Text variant="bodySmall" style={styles.attachedText}>
+                            Attached to item
+                          </Text>
+                        </View>
+                      )}
+                    </Card.Content>
+                  </TouchableOpacity>
+                </Card>
+              ))}
+            </View>
+          )}
+        </View>
       </ScrollView>
+
+      <FAB
+        icon="plus"
+        style={styles.fab}
+        color={colors.text}
+        onPress={() => setRegisterDialogVisible(true)}
+        label="Register Tag"
+      />
+
+      <Portal>
+        <Dialog
+          visible={registerDialogVisible}
+          onDismiss={() => setRegisterDialogVisible(false)}
+          style={styles.dialog}
+        >
+          <Dialog.Title style={styles.dialogTitle}>Register New Tag</Dialog.Title>
+          <Dialog.Content style={styles.dialogContent}>
+            <TextInput
+              label="Tag ID (Optional)"
+              value={newTagId}
+              onChangeText={setNewTagId}
+              mode="outlined"
+              placeholder="Leave empty to auto-generate"
+              style={styles.dialogInput}
+              outlineColor={colors.border}
+              activeOutlineColor={colors.primary}
+              textColor={colors.text}
+              placeholderTextColor={colors.textMuted}
+              theme={{
+                colors: {
+                  onSurfaceVariant: colors.textMuted,
+                },
+              }}
+            />
+
+            <View style={styles.typeContainer}>
+              <Text variant="bodyMedium" style={styles.typeLabel}>
+                Tag Type
+              </Text>
+              <SegmentedButtons
+                value={newTagType}
+                onValueChange={(value) => setNewTagType(value as 'item' | 'box')}
+                buttons={[
+                  { value: 'item', label: 'Item', icon: 'tag' },
+                  { value: 'box', label: 'Box', icon: 'package-variant' },
+                ]}
+                style={styles.segmentedButtons}
+                theme={{
+                  colors: {
+                    secondaryContainer: colors.primary,
+                    onSecondaryContainer: colors.text,
+                  },
+                }}
+              />
+            </View>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              onPress={() => setRegisterDialogVisible(false)}
+              textColor={colors.textSecondary}
+              disabled={registering}
+            >
+              Cancel
+            </Button>
+            <Button
+              onPress={handleRegisterTag}
+              textColor={colors.primary}
+              loading={registering}
+              disabled={registering}
+            >
+              Register
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
