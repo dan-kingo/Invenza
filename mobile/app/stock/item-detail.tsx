@@ -250,7 +250,7 @@ export default function ItemDetailScreen() {
           style={styles.dialog}
         >
           <Dialog.Title style={styles.dialogTitle}>Adjust Quantity</Dialog.Title>
-          <Dialog.Content style={styles.dialogContent}>
+            <Dialog.Content style={styles.dialogContent}>
             <TextInput
               label="Amount"
               value={adjustAmount}
@@ -309,21 +309,32 @@ export default function ItemDetailScreen() {
             />
           </Dialog.Content>
           <Dialog.Actions>
-            <Button
-              onPress={() => setAdjustDialogVisible(false)}
-              textColor={colors.textSecondary}
-              disabled={adjusting}
-            >
-              Cancel
-            </Button>
-            <Button
-              onPress={handleAdjustQuantity}
-              textColor={colors.primary}
-              loading={adjusting}
-              disabled={adjusting}
-            >
-              Adjust
-            </Button>
+            <View style={styles.actionRow}>
+              <Button
+                mode="outlined"
+                onPress={() => setAdjustDialogVisible(false)}
+                disabled={adjusting}
+                style={styles.cancelButton}
+                contentStyle={styles.cancelButtonContent}
+                labelStyle={styles.cancelButtonLabel}
+                icon={() => <MaterialCommunityIcons name="close" size={18} color={colors.textSecondary} />}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                mode="contained"
+                onPress={handleAdjustQuantity}
+                loading={adjusting}
+                disabled={adjusting}
+                style={styles.confirmButton}
+                contentStyle={styles.confirmButtonContent}
+                labelStyle={styles.confirmButtonLabel}
+                icon={() => <MaterialCommunityIcons name="plus-minus" size={18} color={colors.text} />}
+              >
+                Adjust
+              </Button>
+            </View>
           </Dialog.Actions>
         </Dialog>
       </Portal>
@@ -483,6 +494,41 @@ const styles = StyleSheet.create({
   },
   dialogInput: {
     backgroundColor: colors.surfaceVariant,
+  },
+  // Adjust dialog actions
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+    paddingHorizontal: 8,
+    paddingBottom: 8,
+    width: '100%',
+  },
+  cancelButton: {
+    flex: 1,
+    borderRadius: 10,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  cancelButtonContent: {
+    height: 48,
+  },
+  cancelButtonLabel: {
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  confirmButton: {
+    flex: 1,
+    marginLeft: 8,
+    borderRadius: 10,
+    backgroundColor: colors.primary,
+  },
+  confirmButtonContent: {
+    height: 48,
+  },
+  confirmButtonLabel: {
+    color: colors.text,
+    fontWeight: '700',
   },
   actionContainer: {
     marginVertical: 8,

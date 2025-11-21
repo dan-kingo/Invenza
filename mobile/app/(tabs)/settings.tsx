@@ -256,21 +256,32 @@ export default function SettingsScreen() {
             </Text>
           </Dialog.Content>
           <Dialog.Actions>
-            <Button
-              onPress={() => setLogoutDialogVisible(false)}
-              textColor={colors.textSecondary}
-              disabled={loggingOut}
-            >
-              Cancel
-            </Button>
-            <Button
-              onPress={handleLogout}
-              textColor={colors.error}
-              loading={loggingOut}
-              disabled={loggingOut}
-            >
-              Logout
-            </Button>
+            <View style={styles.dialogActionRow}>
+              <Button
+                mode="outlined"
+                onPress={() => setLogoutDialogVisible(false)}
+                disabled={loggingOut}
+                style={styles.cancelBtn}
+                contentStyle={styles.cancelBtnContent}
+                labelStyle={styles.cancelBtnLabel}
+                icon={() => <MaterialCommunityIcons name="close" size={18} color={colors.textSecondary} />}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                mode="contained"
+                onPress={handleLogout}
+                loading={loggingOut}
+                disabled={loggingOut}
+                style={styles.logoutConfirmBtn}
+                contentStyle={styles.logoutConfirmContent}
+                labelStyle={styles.logoutConfirmLabel}
+                icon={() => <MaterialCommunityIcons name="logout" size={18} color={colors.text} />}
+              >
+                Logout
+              </Button>
+            </View>
           </Dialog.Actions>
         </Dialog>
       </Portal>
@@ -402,5 +413,38 @@ const styles = StyleSheet.create({
   },
   dialogContent: {
     color: colors.textSecondary,
+  },
+  dialogActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+    gap: 12,
+    width: '100%',
+  },
+  cancelBtn: {
+    flex: 1,
+    borderRadius: 10,
+    backgroundColor: colors.surface,
+  },
+  cancelBtnContent: {
+    height: 48,
+  },
+  cancelBtnLabel: {
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  logoutConfirmBtn: {
+    flex: 1,
+    marginLeft: 12,
+    borderRadius: 10,
+    backgroundColor: colors.error,
+  },
+  logoutConfirmContent: {
+    height: 48,
+  },
+  logoutConfirmLabel: {
+    color: colors.text,
+    fontWeight: '700',
   },
 });
