@@ -1,10 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, Alert, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
-import { Text, TextInput, Button, Card, FAB, Portal, Dialog, SegmentedButtons, Chip, ActivityIndicator } from 'react-native-paper';
+import {
+  View,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  RefreshControl,
+  TouchableOpacity,
+  Modal,
+} from 'react-native';
+import {
+  Text,
+  TextInput,
+  Button,
+  Card,
+  FAB,
+  Portal,
+  Dialog,
+  SegmentedButtons,
+  Chip,
+  ActivityIndicator,
+} from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { Camera, CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { BarCodeScanner } from 'expo-barcode-scanner';
 import { colors } from '../../theme/colors';
 import itemService from '../../services/item.service';
 import tagService, { Tag } from '../../services/tag.service';
@@ -14,7 +35,6 @@ export default function ScanScreen() {
   const [tagId, setTagId] = useState('');
   const [scanning, setScanning] = useState(false);
   const [scannedItem, setScannedItem] = useState<any>(null);
-  const [scannedTag, setScannedTag] = useState<any>(null);
   const [tags, setTags] = useState<Tag[]>([]);
   const [loadingTags, setLoadingTags] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -23,11 +43,18 @@ export default function ScanScreen() {
   const [newTagType, setNewTagType] = useState<'item' | 'box'>('item');
   const [registering, setRegistering] = useState(false);
   const [filterType, setFilterType] = useState<'all' | 'item' | 'box'>('all');
+  const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
+  const [scanningQR, setScanningQR] = useState(false);
 
-  
   useEffect(() => {
     loadTags();
+    requestCameraPermission();
   }, []);
+
+  const requestCameraPermission = async () => {
+    const { status } = await Camera.requestCameraPermissionsAsync();
+    setCameraPermission(status === 'granted');
+  };
 
   const loadTags = async () => {
     try {
@@ -71,50 +98,51 @@ export default function ScanScreen() {
     }
   };
 
- const handleScan = async (incomingTagId?: string) => {
-  const id = (incomingTagId || tagId).trim();
+  const handleScan = async (incomingTagId?: string) => {
+    const id = (incomingTagId || tagId).trim();
 
-  if (!id) {
+    if (!id) {
       Alert.alert('Error', 'Please enter a tag ID');
       return;
     }
 
     setScanning(true);
     setScannedItem(null);
-    setScannedTag(null);
 
     try {
       const result = await itemService.scanItem(id);
 
+      if (result.item) {
+        setScannedItem(result.item);
 
-   if (result.item) {
-  setScannedItem(result.item);
-
-  Alert.alert(
-    "Item Found",
-    `Tag: ${result.tagId}`,
-    [
-      {
-        text: "View Item",
-        onPress: () => router.push(`/stock/item-detail?id=${result.item._id}`)
-      },
-      {
-        text: "View QR",
-        onPress: () =>
-          router.push(`/stock/print-qr?tag=${result.tagId}`)
-      },
-      { text: "OK" }
-    ]
-  );
-} else {
-  Alert.alert("Tag Found", "But no item attached yet");
-}
-
+        Alert.alert(
+          'Item Found',
+          `Tag: ${result.tagId}`,
+          [
+            {
+              text: 'View Item',
+              onPress: () => router.push(`/stock/item-detail?id=${result.item._id}`),
+            },
+            {
+              text: 'View QR',
+              onPress: () => router.push(`/stock/print-qr?tag=${result.tagId}`),
+            },
+            { text: 'OK' },
+          ]
+        );
+      } else {
+        Alert.alert('Tag Found', 'But no item attached yet');
+      }
     } catch (error: any) {
       Alert.alert('Error', error.response?.data?.error || 'Failed to scan tag');
     } finally {
       setScanning(false);
     }
+  };
+
+  const handleBarCodeScanned = ({ data }: { data: string }) => {
+    setScanningQR(false);
+    handleScan(data);
   };
 
   const filteredTags = tags.filter((tag) => {
@@ -148,22 +176,11 @@ export default function ScanScreen() {
           <Text variant="headlineLarge" style={styles.title}>
             Scan Item
           </Text>
-          <Text variant="bodyLarge" style={styles.subtitle}>
-            Enter or scan a tag ID to view item details
-          </Text>
+  
         </View>
 
         <View style={styles.scanContainer}>
-          <Card style={styles.scanCard}>
-            <LinearGradient
-              colors={[colors.primary, colors.secondary]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.scanGradient}
-            >
-              <MaterialCommunityIcons name="qrcode-scan" size={80} color={colors.text} />
-            </LinearGradient>
-          </Card>
+         
 
           <TextInput
             label="Tag ID"
@@ -196,8 +213,23 @@ export default function ScanScreen() {
           >
             Scan Tag
           </Button>
+
+          <Button
+            mode="outlined"
+            onPress={() => {
+              if (!cameraPermission) {
+                Alert.alert('Camera permission denied', 'Please enable camera access in settings.');
+                return;
+              }
+              setScanningQR(true);
+            }}
+            style={[styles.scanButton, { marginTop: 12 }]}
+          >
+            Scan QR/Barcode
+          </Button>
         </View>
 
+        {/* Scanned item card */}
         {scannedItem && (
           <Card style={styles.resultCard}>
             <Card.Content style={styles.resultContent}>
@@ -244,30 +276,7 @@ export default function ScanScreen() {
           </Card>
         )}
 
-        <View style={styles.infoSection}>
-          <Text variant="titleMedium" style={styles.infoTitle}>
-            How to use
-          </Text>
-          <View style={styles.infoItem}>
-            <MaterialCommunityIcons name="numeric-1-circle" size={24} color={colors.primary} />
-            <Text variant="bodyMedium" style={styles.infoText}>
-              Enter or scan a tag ID
-            </Text>
-          </View>
-          <View style={styles.infoItem}>
-            <MaterialCommunityIcons name="numeric-2-circle" size={24} color={colors.primary} />
-            <Text variant="bodyMedium" style={styles.infoText}>
-              Tap Scan Tag to search
-            </Text>
-          </View>
-          <View style={styles.infoItem}>
-            <MaterialCommunityIcons name="numeric-3-circle" size={24} color={colors.primary} />
-            <Text variant="bodyMedium" style={styles.infoText}>
-              View item details and manage inventory
-            </Text>
-          </View>
-        </View>
-
+        {/* Registered tags */}
         <View style={styles.tagsSection}>
           <View style={styles.tagsSectionHeader}>
             <Text variant="titleLarge" style={styles.sectionTitle}>
@@ -313,11 +322,12 @@ export default function ScanScreen() {
             <View style={styles.tagsGrid}>
               {filteredTags.map((tag) => (
                 <Card key={tag._id} style={styles.tagCard}>
-                 <TouchableOpacity onPress={() => {
-  setTagId(tag.tagId);
-  handleScan(tag.tagId); // auto scan
-}}>
-
+                  <TouchableOpacity
+                    onPress={() => {
+                      setTagId(tag.tagId);
+                      handleScan(tag.tagId);
+                    }}
+                  >
                     <Card.Content style={styles.tagCardContent}>
                       <View style={styles.tagCardHeader}>
                         <MaterialCommunityIcons
@@ -328,7 +338,7 @@ export default function ScanScreen() {
                         <Chip
                           style={[
                             styles.tagTypeChip,
-                            tag.type === 'item' ? styles.itemTypeChip : styles.boxTypeChip
+                            tag.type === 'item' ? styles.itemTypeChip : styles.boxTypeChip,
                           ]}
                           textStyle={styles.tagTypeChipText}
                         >
@@ -340,7 +350,11 @@ export default function ScanScreen() {
                       </Text>
                       {tag.attachedItemId && (
                         <View style={styles.attachedIndicator}>
-                          <MaterialCommunityIcons name="link-variant" size={16} color={colors.success} />
+                          <MaterialCommunityIcons
+                            name="link-variant"
+                            size={16}
+                            color={colors.success}
+                          />
                           <Text variant="bodySmall" style={styles.attachedText}>
                             Attached to item
                           </Text>
@@ -355,15 +369,16 @@ export default function ScanScreen() {
         </View>
       </ScrollView>
 
-      <FAB
+      {/* <FAB
         icon="plus"
         style={styles.fab}
         color={colors.text}
         onPress={() => setRegisterDialogVisible(true)}
         label="Register Tag"
-      />
+      /> */}
 
-      <Portal>
+      {/* Register Tag Dialog */}
+      {/* <Portal>
         <Dialog
           visible={registerDialogVisible}
           onDismiss={() => setRegisterDialogVisible(false)}
@@ -428,256 +443,92 @@ export default function ScanScreen() {
             </Button>
           </Dialog.Actions>
         </Dialog>
-      </Portal>
+      </Portal> */}
+
+      {/* Camera QR Scanner */}
+      <Modal visible={scanningQR} animationType="slide">
+        <View style={{ flex: 1 }}>
+          <CameraView
+            style={{ flex: 1 }}
+            onBarcodeScanned={handleBarCodeScanned}
+            barcodeScannerSettings={{
+              barcodeTypes: [
+                'qr',
+                'code128',
+                'ean13',
+                'ean8',
+              ],
+            }}
+          />
+          <Button
+            mode="contained"
+            style={{ position: 'absolute', bottom: 40, alignSelf: 'center', width: 200 }}
+            onPress={() => setScanningQR(false)}
+          >
+            Close
+          </Button>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingTop: 20,
-    paddingBottom: 100,
-    paddingHorizontal: 24,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  title: {
-    color: colors.text,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  subtitle: {
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-  scanContainer: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  scanCard: {
-    width: 200,
-    height: 200,
-    borderRadius: 24,
-    overflow: 'hidden',
-    marginBottom: 24,
-  },
-  scanGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  input: {
-    backgroundColor: colors.surface,
-    width: '100%',
-    marginBottom: 16,
-  },
-  scanButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    width: '100%',
-  },
-  scanButtonLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  buttonContent: {
-    height: 56,
-  },
-  resultCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    marginBottom: 32,
-    borderWidth: 2,
-    borderColor: colors.success + '60',
-  },
-  resultContent: {
-    padding: 8,
-  },
-  resultHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  resultTitle: {
-    color: colors.text,
-    fontWeight: 'bold',
-    marginLeft: 12,
-  },
-  resultDetails: {
-    marginTop: 8,
-    marginBottom: 16,
-  },
-  itemName: {
-    color: colors.text,
-    fontWeight: 'bold',
-  },
-  itemInfo: {
-    color: colors.textSecondary,
-  },
-  quantityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  itemQuantity: {
-    color: colors.secondary,
-    fontWeight: 'bold',
-  },
-  viewButton: {
-    backgroundColor: colors.secondary,
-    borderRadius: 12,
-  },
-  viewButtonLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  infoSection: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-  },
-  infoTitle: {
-    color: colors.text,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  infoItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  infoText: {
-    color: colors.textSecondary,
-    flex: 1,
-  },
-  // Tags list
-  tagsSection: {
-    marginTop: 8,
-    paddingHorizontal: 0,
-    marginBottom: 24,
-  },
-  tagsSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    color: colors.text,
-    fontWeight: '600',
-  },
-  filterButtons: {
-    minWidth: 160,
-  },
-  loadingContainer: {
-    padding: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyCard: {
-    borderRadius: 12,
-    marginHorizontal: 0,
-    marginBottom: 12,
-  },
-  emptyContent: {
-    alignItems: 'center',
-    padding: 24,
-  },
-  emptyTitle: {
-    color: colors.text,
-    marginTop: 8,
-    fontWeight: '600',
-  },
-  emptyMessage: {
-    color: colors.textSecondary,
-    marginTop: 4,
-  },
-  tagsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    paddingHorizontal: 0,
-  },
-  tagCard: {
-    width: '48%',
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  tagCardContent: {
-    padding: 12,
-  },
-  tagCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  tagTypeChip: {
-    height: 24,
-  },
-  itemTypeChip: {
-    backgroundColor: colors.primary + '20',
-  },
-  boxTypeChip: {
-    backgroundColor: colors.secondary + '20',
-  },
-  tagTypeChipText: {
-    fontSize: 11,
-    color: colors.text,
-  },
-  tagIdText: {
-    marginTop: 8,
-    color: colors.text,
-    fontWeight: '600',
-  },
-  attachedIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  attachedText: {
-    color: colors.success,
-    fontSize: 12,
-    marginLeft: 6,
-  },
-  // FAB & dialogs
+  container: { flex: 1, backgroundColor: colors.background },
+  scrollView: { flex: 1 },
+  scrollContent: { paddingTop: 20, paddingBottom: 100, paddingHorizontal: 24 },
+  header: { alignItems: 'flex-start', marginBottom: 12 },
+  title: { color: colors.text, fontWeight: 'bold', marginBottom: 8 },
+  subtitle: { color: colors.textSecondary, textAlign: 'center' },
+  scanContainer: { alignItems: 'center', marginBottom: 32 },
+  scanCard: { width: 200, height: 200, borderRadius: 24, overflow: 'hidden', marginBottom: 24 },
+  scanGradient: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  input: { backgroundColor: colors.surface, width: '100%', marginBottom: 16 },
+  scanButton: { backgroundColor: colors.primary, borderRadius: 12, width: '100%' },
+  scanButtonLabel: { fontSize: 16, fontWeight: '600', color: colors.text },
+  buttonContent: { height: 56 },
+  resultCard: { backgroundColor: colors.surface, borderRadius: 16, marginBottom: 32, borderWidth: 2, borderColor: colors.success + '60' },
+  resultContent: { padding: 8 },
+  resultHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  resultTitle: { color: colors.text, fontWeight: 'bold', marginLeft: 12 },
+  resultDetails: { marginTop: 8, marginBottom: 16 },
+  itemName: { color: colors.text, fontWeight: 'bold' },
+  itemInfo: { color: colors.textSecondary },
+  quantityRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  itemQuantity: { color: colors.secondary, fontWeight: 'bold' },
+  viewButton: { backgroundColor: colors.secondary, borderRadius: 12 },
+  viewButtonLabel: { fontSize: 14, fontWeight: '600', color: colors.text },
+  tagsSection: { marginTop: 8, paddingHorizontal: 0, marginBottom: 24 },
+  tagsSectionHeader: { flexDirection: 'column', gap:12, alignItems: 'flex-start', marginBottom: 12 },
+  sectionTitle: { color: colors.text, fontWeight: '600' },
+  filterButtons: { minWidth: 160 },
+  loadingContainer: { padding: 24, alignItems: 'center', justifyContent: 'center' },
+  emptyCard: { borderRadius: 12, marginHorizontal: 0, marginBottom: 12 },
+  emptyContent: { alignItems: 'center', padding: 24 },
+  emptyTitle: { color: colors.text, marginTop: 8, fontWeight: '600' },
+  emptyMessage: { color: colors.textSecondary, marginTop: 4 },
+  tagsGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', paddingHorizontal: 0 },
+  tagCard: { width: '100%', borderRadius: 12, marginBottom: 12, height:120 },
+  tagCardContent: { padding: 12 },
+  tagCardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  tagTypeChip: { height: 44 },
+  itemTypeChip: { backgroundColor: colors.primary + '20' },
+  boxTypeChip: { backgroundColor: colors.secondary + '20' },
+  tagTypeChipText: { color: colors.text, fontSize: 12, textTransform: 'capitalize' },
+  tagIdText: { color: colors.text, marginTop: 8, fontWeight: '500' },
+  attachedIndicator: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  attachedText: { color: colors.success, marginLeft: 4, fontSize: 12 },
   fab: {
     position: 'absolute',
-    right: 20,
-    bottom: 24,
+    right: 16,
+    bottom: 16,
     backgroundColor: colors.primary,
   },
-  dialog: {
-    borderRadius: 12,
-  },
-  dialogTitle: {
-    fontWeight: '700',
-  },
-  dialogContent: {
-    paddingTop: 8,
-  },
-  dialogInput: {
-    marginBottom: 12,
-  },
-  typeContainer: {
-    marginTop: 12,
-  },
-  typeLabel: {
-    color: colors.text,
-    fontWeight: '600',
-  },
-  segmentedButtons: {
-    marginTop: 8,
-  },
+  dialog: { borderRadius: 16, boxShadow: '0 4px 6px rgba(0,0,0,1.1)' },
+  dialogTitle: { color: colors.text, fontWeight: '600' },
+  dialogContent: { paddingTop: 0 },
+  dialogInput: { backgroundColor: colors.surface, marginBottom: 16 },
+  typeContainer: { marginBottom: 8 },
+  typeLabel: { color: colors.textSecondary, marginBottom: 8 },
+  segmentedButtons: {},
 });
