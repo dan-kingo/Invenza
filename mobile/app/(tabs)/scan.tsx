@@ -489,15 +489,15 @@ const styles = StyleSheet.create({
   resultHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
     marginBottom: 16,
   },
   resultTitle: {
     color: colors.text,
     fontWeight: 'bold',
+    marginLeft: 12,
   },
   resultDetails: {
-    gap: 8,
+    marginTop: 8,
     marginBottom: 16,
   },
   itemName: {
@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   quantityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
   },
   itemQuantity: {
     color: colors.secondary,
@@ -529,7 +529,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: 16,
     padding: 20,
-    gap: 16,
+    marginBottom: 20,
   },
   infoTitle: {
     color: colors.text,
@@ -539,10 +539,128 @@ const styles = StyleSheet.create({
   infoItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    marginBottom: 12,
   },
   infoText: {
     color: colors.textSecondary,
     flex: 1,
+  },
+  // Tags list
+  tagsSection: {
+    marginTop: 8,
+    paddingHorizontal: 0,
+    marginBottom: 24,
+  },
+  tagsSectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    color: colors.text,
+    fontWeight: '600',
+  },
+  filterButtons: {
+    minWidth: 160,
+  },
+  loadingContainer: {
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyCard: {
+    borderRadius: 12,
+    marginHorizontal: 0,
+    marginBottom: 12,
+  },
+  emptyContent: {
+    alignItems: 'center',
+    padding: 24,
+  },
+  emptyTitle: {
+    color: colors.text,
+    marginTop: 8,
+    fontWeight: '600',
+  },
+  emptyMessage: {
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  tagsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 0,
+  },
+  tagCard: {
+    width: '48%',
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  tagCardContent: {
+    padding: 12,
+  },
+  tagCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  tagTypeChip: {
+    height: 24,
+  },
+  itemTypeChip: {
+    backgroundColor: colors.primary + '20',
+  },
+  boxTypeChip: {
+    backgroundColor: colors.secondary + '20',
+  },
+  tagTypeChipText: {
+    fontSize: 11,
+    color: colors.text,
+  },
+  tagIdText: {
+    marginTop: 8,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  attachedIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+  },
+  attachedText: {
+    color: colors.success,
+    fontSize: 12,
+    marginLeft: 6,
+  },
+  // FAB & dialogs
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 24,
+    backgroundColor: colors.primary,
+  },
+  dialog: {
+    borderRadius: 12,
+  },
+  dialogTitle: {
+    fontWeight: '700',
+  },
+  dialogContent: {
+    paddingTop: 8,
+  },
+  dialogInput: {
+    marginBottom: 12,
+  },
+  typeContainer: {
+    marginTop: 12,
+  },
+  typeLabel: {
+    color: colors.text,
+    fontWeight: '600',
+  },
+  segmentedButtons: {
+    marginTop: 8,
   },
 });
