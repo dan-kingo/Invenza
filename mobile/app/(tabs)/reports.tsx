@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert, Linking } from 'react-native';
+import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert, Linking, Platform } from 'react-native';
 import { Text, Card, ActivityIndicator, SegmentedButtons, Chip, Button, IconButton, Menu } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors } from '../../theme/colors';
 import reportService, { StockSummaryItem, LowStockItem, TopSellingItem, CategoryBreakdown } from '../../services/report.service';
+import * as FileSystem from 'expo-file-system/legacy';
+import * as SecureStore from 'expo-secure-store';
+import * as Sharing from 'expo-sharing';
+import * as MediaLibrary from 'expo-media-library';
+import { API_CONFIG } from '../../constants/config';
 
 type ReportType = 'stock-summary' | 'low-stock' | 'top-selling' | 'category';
 
@@ -73,11 +78,84 @@ export default function ReportsScreen() {
       }
 
       if (url) {
-        await Linking.openURL(url);
-        Alert.alert('Success', `Report exported as ${format.toUpperCase()}`);
+        // Prefer downloading directly with auth headers rather than opening in browser
+        const token = await SecureStore.getItemAsync('accessToken');
+
+        // Build a URL without token param if reportService returned one containing token
+        // We'll request the endpoint directly and pass Authorization header using FileSystem.downloadAsync
+        const parsed = new URL(url);
+        const params = new URLSearchParams(parsed.search);
+        // remove token query param if present; we'll send token via Authorization header
+        params.delete('token');
+        const search = params.toString();
+        const endpointPath = parsed.pathname + (search ? `?${search}` : '');
+        const downloadUrl = `${API_CONFIG.BASE_URL}${endpointPath}`;
+
+        // ensure reports directory exists
+        const dir = ((FileSystem as any).documentDirectory ?? '') + 'reports/';
+        try {
+          await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
+        } catch (e) {
+          // ignore if exists
+        }
+
+        const filename = `report-${reportType}-${Date.now()}.${format === 'pdf' ? 'pdf' : 'csv'}`;
+        const fileUri = dir + filename;
+
+        const downloadOptions: any = {};
+        if (token) downloadOptions.headers = { Authorization: `Bearer ${token}` };
+
+        const result = await FileSystem.downloadAsync(downloadUrl, fileUri, downloadOptions);
+
+        if (result && result.status === 200) {
+          try {
+            // Request write-only permissions to avoid requesting AUDIO permission on Android
+            // which can cause manifest rejections in some build workflows.
+            const { status } = await MediaLibrary.requestPermissionsAsync({ writeOnly: true } as any);
+
+            if (status === 'granted') {
+              const asset = await MediaLibrary.createAssetAsync(result.uri);
+              const albumName = Platform.OS === 'android' ? 'Download' : 'Invenza';
+              const album = await MediaLibrary.getAlbumAsync(albumName);
+
+              if (!album) {
+                try {
+                  await MediaLibrary.createAlbumAsync(albumName, asset, false);
+                } catch (e) {
+                  // if creating album fails, ignore and proceed
+                  console.warn('Create album failed', e);
+                }
+              } else {
+                try {
+                  await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+                } catch (e) {
+                  console.warn('Add asset to album failed', e);
+                }
+              }
+
+              Alert.alert('Success', 'Report saved to device gallery/downloads');
+            } else {
+              // permission denied -> open share dialog as fallback
+              if (await Sharing.isAvailableAsync()) {
+                await Sharing.shareAsync(result.uri);
+              }
+              Alert.alert('Success', 'Report downloaded (use share dialog to save)');
+            }
+          } catch (e) {
+            if (await Sharing.isAvailableAsync()) {
+              await Sharing.shareAsync(result.uri);
+            }
+            Alert.alert('Success', 'Report downloaded to device');
+          }
+        } else {
+          // fallback: open in browser
+          await Linking.openURL(url);
+          Alert.alert('Info', 'Opened report URL in browser');
+        }
       }
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.error || 'Failed to export report');
+      console.error('Export error', error);
+      Alert.alert('Error', error?.message || 'Failed to export report');
     } finally {
       setExporting(false);
     }
