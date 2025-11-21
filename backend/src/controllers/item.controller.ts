@@ -5,87 +5,120 @@ import { InventoryEvent } from "../models/InventoryEvent";
 import { User } from "../models/User";
 import { uploadToCloudinary } from "../services/cloudinary.service";
 import { AlertService } from "../services/alert.service";
+import crypto from "crypto";
+import QRCode from "qrcode";
 
 export class ItemController {
-  static async createItem(req: Request, res: Response) {
-    try {
-      const userId = req.user?.id;
-      const {
-        name,
-        sku,
-        description,
-        quantity,
-        unit,
-        category,
-        location,
-        tags,
-        minThreshold,
-        expiryDate
-      } = req.body;
+ static async createItem(req: Request, res: Response) {
+  try {
+    const userId = req.user?.id;
+    const {
+      name,
+      sku,
+      description,
+      quantity,
+      unit,
+      category,
+      location,
+      tags,
+      minThreshold,
+      expiryDate
+    } = req.body;
 
-      if (!name) {
-        return res.status(400).json({ error: "Item name is required" });
-      }
-
-      const user = await User.findById(userId);
-      if (!user || !user.businessId) {
-        return res.status(403).json({ error: "User must belong to a business" });
-      }
-
-      const businessId = user.businessId;
-
-      let imageUrl;
-      if (req.file) {
-        imageUrl = await uploadToCloudinary(
-          req.file.buffer,
-          `items/${businessId}`
-        );
-      }
-
-      const item = await Item.create({
-        businessId,
-        name,
-        sku,
-        description,
-        quantity: quantity || 0,
-        unit: unit || "pcs",
-        category,
-        location,
-        tags: tags || [],
-        minThreshold: minThreshold || 0,
-        image: imageUrl,
-        expiryDate: expiryDate ? new Date(expiryDate) : undefined
-      });
-
-      if (tags && tags.length > 0) {
-        await Tag.updateMany(
-          { tagId: { $in: tags }, businessId },
-          { $set: { attachedItemId: item._id } }
-        );
-      }
-
-      if (quantity && quantity > 0) {
-        await InventoryEvent.create({
-          itemId: item._id,
-          businessId,
-          userId,
-          delta: quantity,
-          action: "added",
-          reason: "Initial stock"
-        });
-      }
-
-      await AlertService.checkItemThreshold(item._id, businessId, item.quantity);
-
-      return res.status(201).json({
-        message: "Item created successfully",
-        item
-      });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Failed to create item" });
+    if (!name) {
+      return res.status(400).json({ error: "Item name is required" });
     }
+
+    const user = await User.findById(userId);
+    if (!user || !user.businessId) {
+      return res.status(403).json({ error: "User must belong to a business" });
+    }
+
+    const businessId = user.businessId;
+
+    let imageUrl;
+    if (req.file) {
+      imageUrl = await uploadToCloudinary(
+        req.file.buffer,
+        `items/${businessId}`
+      );
+    }
+
+    /** 🔥 Auto-generate a tag if none provided */
+    let finalTags = tags;
+
+    if (!finalTags || finalTags.length === 0) {
+      const generated = crypto.randomBytes(16).toString("hex");
+
+      await Tag.create({
+        tagId: generated,
+        type: "item",
+        businessId,
+        attachedItemId: undefined
+      });
+
+      finalTags = [generated];
+    }
+
+    /** 🔥 Create item */
+    const item = await Item.create({
+      businessId,
+      name,
+      sku,
+      description,
+      quantity: quantity || 0,
+      unit: unit || "pcs",
+      category,
+      location,
+      tags: finalTags,
+      minThreshold: minThreshold || 0,
+      image: imageUrl,
+      expiryDate: expiryDate ? new Date(expiryDate) : undefined
+    });
+
+    /** 🔥 Attach tags to item */
+    await Tag.updateMany(
+      { tagId: { $in: finalTags }, businessId },
+      { $set: { attachedItemId: item._id } }
+    );
+
+    /** Create initial event */
+    if (quantity && quantity > 0) {
+      await InventoryEvent.create({
+        itemId: item._id,
+        businessId,
+        userId,
+        delta: quantity,
+        action: "added",
+        reason: "Initial stock"
+      });
+    }
+
+    await AlertService.checkItemThreshold(item._id, businessId, item.quantity);
+
+    /** 🔥 Generate QR code for the first tag */
+    const primaryTag = finalTags[0];
+    let qrData;
+
+    try {
+      qrData = await QRCode.toDataURL(primaryTag);
+    } catch (qrErr) {
+      console.error("QR generation failed", qrErr);
+    }
+
+    /** 🔥 RETURN item + tagId + QR Code */
+    return res.status(201).json({
+      message: "Item created successfully",
+      item,
+      tagId: primaryTag,
+      qrCode: qrData
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to create item" });
   }
+}
+
 
   static async listItems(req: Request, res: Response) {
     try {
@@ -306,10 +339,11 @@ export class ItemController {
       const item = await Item.findById(tag.attachedItemId);
 
       return res.json({
-        message: "Item scanned successfully",
-        tag,
-        item
-      });
+  tagId: tag.tagId,
+  attached: !!tag.attachedItemId,
+  item
+});
+
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: "Failed to scan item" });

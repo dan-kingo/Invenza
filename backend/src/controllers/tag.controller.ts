@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Tag } from "../models/Tag";
 import { User } from "../models/User";
 import crypto from "crypto";
+  import QRCode from "qrcode";
 
 export class TagController {
   static async registerTag(req: Request, res: Response) {
@@ -22,7 +23,9 @@ export class TagController {
 
       const generatedTagId = tagId || crypto.randomBytes(16).toString("hex");
 
-      const existingTag = await Tag.findOne({ tagId: generatedTagId });
+     const existingTag = await Tag.findOne({ tagId: generatedTagId, businessId });
+
+
       if (existingTag) {
         return res.status(400).json({ error: "Tag ID already exists" });
       }
@@ -93,4 +96,30 @@ export class TagController {
       return res.status(500).json({ error: "Failed to list tags" });
     }
   }
+
+
+static async getTagQRCode(req: Request, res: Response) {
+  try {
+    const { tagId } = req.params;
+    const userId = req.user?.id;
+
+    const user = await User.findById(userId);
+    if (!user || !user.businessId) {
+      return res.status(403).json({ error: "Not allowed" });
+    }
+
+    const tag = await Tag.findOne({ tagId, businessId: user.businessId });
+
+    if (!tag) {
+      return res.status(404).json({ error: "Tag not found" });
+    }
+
+    const qrData = await QRCode.toDataURL(tagId);
+
+    return res.json({ tagId, qr: qrData });
+  } catch (err) {
+    return res.status(500).json({ error: "Failed to generate QR" });
+  }
+}
+
 }
