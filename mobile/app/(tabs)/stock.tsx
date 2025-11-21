@@ -58,7 +58,10 @@ export default function StockScreen() {
     }
 
     if (showLowStock) {
-      filtered = filtered.filter(item => item.quantity <= (item.minThreshold || 0));
+      filtered = filtered.filter(item => {
+        const threshold = item.minThreshold || 0;
+        return threshold > 0 && item.quantity <= threshold;
+      });
     }
 
     setFilteredItems(filtered);

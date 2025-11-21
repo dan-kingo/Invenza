@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { Text, TextInput, Button, SegmentedButtons, ActivityIndicator } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert, Image, TouchableOpacity } from 'react-native';
+import { Text, TextInput, Button, SegmentedButtons, ActivityIndicator, IconButton } from 'react-native-paper';
+import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -20,6 +21,8 @@ export default function EditItemScreen() {
   const [category, setCategory] = useState('');
   const [location, setLocation] = useState('');
   const [minThreshold, setMinThreshold] = useState('');
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [existingImage, setExistingImage] = useState<string | null>(null);
 
   useEffect(() => {
     loadItem();
@@ -35,12 +38,38 @@ export default function EditItemScreen() {
       setCategory(data.category || '');
       setLocation(data.location || '');
       setMinThreshold(data.minThreshold?.toString() || '');
+      setExistingImage(data.image || null);
     } catch (error) {
       console.error('Failed to load item:', error);
       Alert.alert('Error', 'Failed to load item details');
     } finally {
       setLoading(false);
     }
+  };
+
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      Alert.alert('Permission Required', 'Please allow access to your photo library');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
+    }
+  };
+
+  const removeImage = () => {
+    setImageUri(null);
+    setExistingImage(null);
   };
 
   const handleSubmit = async () => {
@@ -51,6 +80,19 @@ export default function EditItemScreen() {
 
     setSaving(true);
     try {
+      let imageFile;
+      if (imageUri) {
+        const filename = imageUri.split('/').pop() || 'image.jpg';
+        const match = /\.([\w]+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : 'image/jpeg';
+
+        imageFile = {
+          uri: imageUri,
+          name: filename,
+          type,
+        };
+      }
+
       await itemService.updateItem(id as string, {
         name,
         sku: sku || undefined,
@@ -59,7 +101,7 @@ export default function EditItemScreen() {
         category: category || undefined,
         location: location || undefined,
         minThreshold: minThreshold ? parseInt(minThreshold) : undefined,
-      });
+      }, imageFile);
 
       Alert.alert('Success', 'Item updated successfully', [
         { text: 'OK', onPress: () => router.back() }
@@ -114,6 +156,38 @@ export default function EditItemScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.form}>
+            <View style={styles.imageSection}>
+              <Text variant="bodyMedium" style={styles.label}>
+                Item Image
+              </Text>
+              {imageUri || existingImage ? (
+                <View style={styles.imagePreviewContainer}>
+                  <Image source={{ uri: imageUri || existingImage || '' }} style={styles.imagePreview} resizeMode="cover" />
+                  <IconButton
+                    icon="close-circle"
+                    size={32}
+                    iconColor={colors.error}
+                    style={styles.removeImageButton}
+                    onPress={removeImage}
+                  />
+                  {!imageUri && existingImage && (
+                    <TouchableOpacity style={styles.changeImageButton} onPress={pickImage}>
+                      <MaterialCommunityIcons name="camera" size={24} color={colors.text} />
+                      <Text variant="bodySmall" style={styles.changeImageText}>
+                        Change Image
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ) : (
+                <TouchableOpacity style={styles.imagePlaceholder} onPress={pickImage}>
+                  <MaterialCommunityIcons name="camera-plus" size={48} color={colors.textMuted} />
+                  <Text variant="bodyMedium" style={styles.imagePlaceholderText}>
+                    Tap to add image
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
             <TextInput
               label="Item Name *"
               value={name}
@@ -320,5 +394,54 @@ const styles = StyleSheet.create({
   },
   buttonContent: {
     height: 56,
+  },
+  imageSection: {
+    marginBottom: 8,
+  },
+  imagePlaceholder: {
+    height: 200,
+    backgroundColor: colors.surfaceVariant,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+  },
+  imagePlaceholderText: {
+    color: colors.textMuted,
+    marginTop: 8,
+  },
+  imagePreviewContainer: {
+    position: 'relative',
+    height: 200,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  imagePreview: {
+    width: '100%',
+    height: '100%',
+  },
+  removeImageButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: colors.surface + 'CC',
+  },
+  changeImageButton: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  changeImageText: {
+    color: colors.text,
+    fontWeight: '600',
   },
 });
