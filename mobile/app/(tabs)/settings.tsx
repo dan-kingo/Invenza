@@ -115,7 +115,7 @@ export default function SettingsScreen() {
                 />
               )}
               right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.textMuted} />}
-              onPress={() => {}}
+              onPress={() => router.push('/settings/change-password')}
               titleStyle={styles.listItemTitle}
               descriptionStyle={styles.listItemDescription}
               style={styles.listItem}
@@ -155,7 +155,7 @@ export default function SettingsScreen() {
                 />
               )}
               right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.textMuted} />}
-              onPress={() => router.push('/settings/business')}
+              onPress={() => router.push('/settings/language')}
               titleStyle={styles.listItemTitle}
               descriptionStyle={styles.listItemDescription}
               style={styles.listItem}
@@ -203,7 +203,7 @@ export default function SettingsScreen() {
                 />
               )}
               right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.textMuted} />}
-              onPress={() => {}}
+              onPress={() => router.push('/settings/help-center')}
               titleStyle={styles.listItemTitle}
               descriptionStyle={styles.listItemDescription}
               style={styles.listItem}
@@ -219,7 +219,7 @@ export default function SettingsScreen() {
                 />
               )}
               right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.textMuted} />}
-              onPress={() => {}}
+              onPress={() => router.push('/settings/about')}
               titleStyle={styles.listItemTitle}
               descriptionStyle={styles.listItemDescription}
               style={styles.listItem}
