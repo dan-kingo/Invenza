@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native';
-import { Text, Card, ActivityIndicator, SegmentedButtons, Chip } from 'react-native-paper';
+import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert, Linking } from 'react-native';
+import { Text, Card, ActivityIndicator, SegmentedButtons, Chip, Button, IconButton, Menu } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -17,6 +17,8 @@ export default function ReportsScreen() {
   const [lowStock, setLowStock] = useState<LowStockItem[]>([]);
   const [topSelling, setTopSelling] = useState<TopSellingItem[]>([]);
   const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryBreakdown[]>([]);
+  const [exportMenuVisible, setExportMenuVisible] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     loadReports();
@@ -46,6 +48,39 @@ export default function ReportsScreen() {
   const onRefresh = () => {
     setRefreshing(true);
     loadReports();
+  };
+
+  const handleExport = async (format: 'csv' | 'pdf') => {
+    setExportMenuVisible(false);
+    setExporting(true);
+
+    try {
+      let url = '';
+
+      switch (reportType) {
+        case 'stock-summary':
+          url = await reportService.exportStockSummary(format);
+          break;
+        case 'low-stock':
+          url = await reportService.exportLowStock(format);
+          break;
+        case 'top-selling':
+          url = await reportService.exportTopSelling(format);
+          break;
+        default:
+          Alert.alert('Info', 'Export not available for this report type');
+          return;
+      }
+
+      if (url) {
+        await Linking.openURL(url);
+        Alert.alert('Success', `Report exported as ${format.toUpperCase()}`);
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.error || 'Failed to export report');
+    } finally {
+      setExporting(false);
+    }
   };
 
   if (loading) {
@@ -258,6 +293,35 @@ export default function ReportsScreen() {
         <Text variant="headlineMedium" style={styles.headerTitle}>
           Reports
         </Text>
+        {(reportType === 'stock-summary' || reportType === 'low-stock' || reportType === 'top-selling') && (
+          <Menu
+            visible={exportMenuVisible}
+            onDismiss={() => setExportMenuVisible(false)}
+            anchor={
+              <IconButton
+                icon="download"
+                iconColor={colors.secondary}
+                size={24}
+                onPress={() => setExportMenuVisible(true)}
+                disabled={exporting}
+              />
+            }
+            contentStyle={styles.menuContent}
+          >
+            <Menu.Item
+              onPress={() => handleExport('csv')}
+              title="Export as CSV"
+              leadingIcon="file-delimited"
+              disabled={exporting}
+            />
+            <Menu.Item
+              onPress={() => handleExport('pdf')}
+              title="Export as PDF"
+              leadingIcon="file-pdf-box"
+              disabled={exporting}
+            />
+          </Menu>
+        )}
       </View>
 
       <View style={styles.filterContainer}>
@@ -314,6 +378,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 24,
     paddingTop: 20,
     paddingBottom: 16,
@@ -512,5 +579,8 @@ const styles = StyleSheet.create({
   categoryStatValue: {
     color: colors.text,
     fontWeight: 'bold',
+  },
+  menuContent: {
+    backgroundColor: colors.surface,
   },
 });
