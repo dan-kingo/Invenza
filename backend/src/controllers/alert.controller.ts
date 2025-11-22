@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { User } from "../models/User";
-import { AlertService } from "../services/alert.service";
+import { User } from "../models/User.js";
+import { AlertService } from "../services/alert.service.js";
 
 export class AlertController {
   static async getAlerts(req: Request, res: Response) {

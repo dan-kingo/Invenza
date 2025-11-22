@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { Business } from "../models/Business";
-import { User } from "../models/User";
-import { Item } from "../models/Item";
-import { Tag } from "../models/Tag";
-import { Alert } from "../models/Alert";
+import { Business } from "../models/Business.js";
+import { User } from "../models/User.js";
+import { Item } from "../models/Item.js";
+import { Tag } from "../models/Tag.js";
+import { Alert } from "../models/Alert.js";
 
 export class AdminController {
   static async getBusinesses(req: Request, res: Response) {

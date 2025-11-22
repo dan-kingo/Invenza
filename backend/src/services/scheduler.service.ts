@@ -1,5 +1,5 @@
 import * as cron from "node-cron";
-import { AlertService } from "./alert.service";
+import { AlertService } from "./alert.service.js";
 
 export class SchedulerService {
   private static thresholdCheckTask?: cron.ScheduledTask;
