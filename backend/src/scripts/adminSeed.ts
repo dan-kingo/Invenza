@@ -1,8 +1,8 @@
 import "dotenv/config";
 import mongoose from "mongoose";
-import { connectDB } from "../configs/db";
-import { User } from "../models/User";
-import { hashPassword } from "../utils/hash";
+import { connectDB } from "../configs/db.js";
+import { User } from "../models/User.js";
+import { hashPassword } from "../utils/hash.js";
 
 async function seedAdmin() {
   const mongoUri = process.env.MONGO_URI;

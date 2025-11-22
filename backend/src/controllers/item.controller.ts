@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { Item } from "../models/Item";
-import { Tag } from "../models/Tag";
-import { InventoryEvent } from "../models/InventoryEvent";
-import { User } from "../models/User";
-import { uploadToCloudinary } from "../services/cloudinary.service";
-import { AlertService } from "../services/alert.service";
+import { Item } from "../models/Item.js";
+import { Tag } from "../models/Tag.js";
+import { InventoryEvent } from "../models/InventoryEvent.js";
+import { User } from "../models/User.js";
+import { uploadToCloudinary } from "../services/cloudinary.service.js";
+import { AlertService } from "../services/alert.service.js";
 import crypto from "crypto";
 import QRCode from "qrcode";
 

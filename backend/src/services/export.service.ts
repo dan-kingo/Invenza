@@ -6,7 +6,7 @@ import {
   LowStockItem,
   UsageTrendItem,
   TopSellingItem
-} from "./report.service";
+} from "./report.service.js";
 
 export class ExportService {
   static async exportStockSummaryCSV(

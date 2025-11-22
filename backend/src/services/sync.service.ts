@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
-import { SyncOp, ISyncOp } from "../models/SyncOp";
-import { Item } from "../models/Item";
-import { Tag } from "../models/Tag";
-import { Business } from "../models/Business";
-import { InventoryEvent } from "../models/InventoryEvent";
-import { AlertService } from "./alert.service";
+import { SyncOp, ISyncOp } from "../models/SyncOp.js";
+import { Item } from "../models/Item.js";
+import { Tag } from "../models/Tag.js";
+import { Business } from "../models/Business.js";
+import { InventoryEvent } from "../models/InventoryEvent.js";
+import { AlertService } from "./alert.service.js";
 
 interface ClientOperation {
   opId: string;

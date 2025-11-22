@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { User } from "../models/User";
-import { SyncService } from "../services/sync.service";
+import { User } from "../models/User.js";
+import { SyncService } from "../services/sync.service.js";
 
 export class SyncController {
   static async push(req: Request, res: Response) {

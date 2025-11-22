@@ -1,9 +1,9 @@
 import { Expo, ExpoPushMessage, ExpoPushTicket } from "expo-server-sdk";
 import mongoose from "mongoose";
-import { DeviceToken } from "../models/DeviceToken";
-import { Notification, INotification } from "../models/Notification";
-import { IUser } from "../models/User";
-import { mailer } from "./mail.service";
+import { DeviceToken } from "../models/DeviceToken.js";
+import { Notification, INotification } from "../models/Notification.js";
+import { IUser } from "../models/User.js";
+import { mailer } from "./mail.service.js";
 
 const expo = new Expo();
 

@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { Business } from "../models/Business";
-import { User } from "../models/User";
-import { uploadToCloudinary } from "../services/cloudinary.service";
-import { translateObject } from "../services/translate.service";
+import { Business } from "../models/Business.js";
+import { User } from "../models/User.js";
+import { uploadToCloudinary } from "../services/cloudinary.service.js";
+import { translateObject } from "../services/translate.service.js";
 
 export class BusinessController {
   // GET /business/:id

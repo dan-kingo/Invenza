@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { User } from "../models/User";
-import { Business } from "../models/Business";
-import { ReportService } from "../services/report.service";
-import { ExportService } from "../services/export.service";
+import { User } from "../models/User.js";
+import { Business } from "../models/Business.js";
+import { ReportService } from "../services/report.service.js";
+import { ExportService } from "../services/export.service.js";
 
 export class ReportController {
   static async getStockSummary(req: Request, res: Response) {

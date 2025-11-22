@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import crypto from "crypto";
-import { User } from "../models/User";
-import { Business } from "../models/Business";
-import { hashPassword, comparePassword } from "../utils/hash";
+import { User } from "../models/User.js";
+import { Business } from "../models/Business.js";
+import { hashPassword, comparePassword } from "../utils/hash.js";
 import {
   generateAccessToken,
   generateRefreshToken

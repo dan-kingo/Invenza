@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
-import { Alert, IAlert } from "../models/Alert";
-import { Item } from "../models/Item";
-import { Notification } from "../models/Notification";
-import { User } from "../models/User";
-import { NotificationService } from "./notification.service";
+import { Alert, IAlert } from "../models/Alert.js";
+import { Item } from "../models/Item.js";
+import { Notification } from "../models/Notification.js";
+import { User } from "../models/User.js";
+import { NotificationService } from "./notification.service.js";
 
 export class AlertService {
   static async checkItemThreshold(

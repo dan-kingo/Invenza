@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { Tag } from "../models/Tag";
-import { User } from "../models/User";
+import { Tag } from "../models/Tag.js";
+import { User } from "../models/User.js";
 import crypto from "crypto";
   import QRCode from "qrcode";
 

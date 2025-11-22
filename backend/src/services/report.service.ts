@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import { Item } from "../models/Item";
-import { InventoryEvent } from "../models/InventoryEvent";
+import { Item } from "../models/Item.js";
+import { InventoryEvent } from "../models/InventoryEvent.js";
 
 export interface StockSummaryItem {
   itemId: string;
