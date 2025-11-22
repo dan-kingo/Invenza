@@ -17,7 +17,7 @@ export interface ISyncOp extends Document {
 
 const syncOpSchema = new Schema<ISyncOp>(
   {
-    opId: { type: String, required: true, unique: true },
+    opId: { type: String, required: true },
     businessId: { type: Schema.Types.ObjectId, ref: "Business", required: true },
     userId: { type: Schema.Types.ObjectId, ref: "User" },
     type: {
