@@ -1,4 +1,4 @@
-import { Translate } from "@google-cloud/translate/build/src/v2";
+import { Translate } from "@google-cloud/translate/build/src/v2/index.js";
 
 const translate = new Translate({
   key: process.env.GOOGLE_TRANSLATE_API_KEY
