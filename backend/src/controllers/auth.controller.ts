@@ -6,9 +6,9 @@ import { hashPassword, comparePassword } from "../utils/hash.js";
 import {
   generateAccessToken,
   generateRefreshToken
-} from "../services/jwt.service";
-import { sendPasswordResetEmail, sendVerificationEmail } from "../services/mail.service";
-import { PasswordResetToken } from "../models/PasswordResetToken";
+} from "../services/jwt.service.js";
+import { sendPasswordResetEmail, sendVerificationEmail } from "../services/mail.service.js";
+import { PasswordResetToken } from "../models/PasswordResetToken.js";
 
 export class AuthController {
   // REGISTER
