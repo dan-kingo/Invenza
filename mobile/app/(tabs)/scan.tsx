@@ -123,10 +123,7 @@ export default function ScanScreen() {
               text: 'View Item',
               onPress: () => router.push(`/stock/item-detail?id=${result.item._id}`),
             },
-            {
-              text: 'View QR',
-              onPress: () => router.push(`/stock/print-qr?tag=${result.tagId}`),
-            },
+          
             { text: 'OK' },
           ]
         );
