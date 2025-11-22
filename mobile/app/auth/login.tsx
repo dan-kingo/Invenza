@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Text, TextInput, Button, HelperText } from 'react-native-paper';
+import LogoWithText from '../components/LogoWithText';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -56,23 +57,7 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
-            <View style={styles.logoContainer}>
-              <LinearGradient
-                colors={colors.gradient.primary}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.logoGradient}
-              >
-                <Text style={styles.logoText}>I</Text>
-              </LinearGradient>
-            </View>
-
-            <Text variant="headlineLarge" style={styles.title}>
-              Welcome Back
-            </Text>
-            <Text variant="bodyLarge" style={styles.subtitle}>
-              Sign in to your account
-            </Text>
+            <LogoWithText size={64} title="Welcome Back" subtitle="Sign in to your account" imageSource={require("../../assets/images/logo.png")}/>
           </View>
 
           <View style={styles.form}>

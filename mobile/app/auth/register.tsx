@@ -108,9 +108,7 @@ export default function RegisterScreen() {
             <Text variant="headlineLarge" style={styles.title}>
               Create Account
             </Text>
-            <Text variant="bodyLarge" style={styles.subtitle}>
-              Start managing your inventory
-            </Text>
+            
           </View>
 
           <View style={styles.form}>
@@ -325,12 +323,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 30,
     paddingBottom: 40,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 16,
   },
   title: {
     color: colors.text,

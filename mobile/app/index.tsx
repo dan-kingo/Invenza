@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet, BackHandler } from 'react-native';
 import { Text, Button } from 'react-native-paper';
+import LogoWithText from './components/LogoWithText';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
@@ -47,24 +48,8 @@ export default function WelcomeScreen() {
 
       <View style={styles.content}>
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <LinearGradient
-              colors={colors.gradient.primary as unknown as readonly [string, string, ...string[]]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.logoGradient}
-            >
-              <Text style={styles.logoText}>I</Text>
-            </LinearGradient>
-          </View>
-
-          <Text variant="displaySmall" style={styles.title}>
-            Invenza
-          </Text>
-
-          <Text variant="bodyLarge" style={styles.subtitle}>
-            Smart Inventory Management
-          </Text>
+          {/* To use a custom image logo, pass `imageSource={require('../assets/logo.png')}` */}
+          <LogoWithText imageSource={require('../assets/images/logo.png')} />
         </View>
 
         <View style={styles.features}>
@@ -158,18 +143,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 80,
     paddingBottom: 40,
-    justifyContent: 'space-between',
   },
   header: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 8,
   },
   logoContainer: {
-    marginBottom: 24,
+    marginBottom: 8,
   },
   logoGradient: {
     width: 80,
-    height: 80,
+    height: 40,
     borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
@@ -180,7 +164,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   logoText: {
-    fontSize: 48,
+    fontSize: 24,
     fontWeight: 'bold',
     color: colors.text,
   },
