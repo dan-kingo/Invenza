@@ -25,7 +25,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Camera, CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { BarCodeScanner } from 'expo-barcode-scanner';
 import { colors } from '../../theme/colors';
 import itemService from '../../services/item.service';
 import tagService, { Tag } from '../../services/tag.service';
