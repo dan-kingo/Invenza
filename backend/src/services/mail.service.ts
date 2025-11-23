@@ -10,9 +10,15 @@ export const mailer = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
   },
-   tls: {
-    rejectUnauthorized: false, // <— prevent TLS errors on Render/Vercel
+  tls: {
+    rejectUnauthorized: false,
   },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100,
 });
 export async function sendVerificationEmail(email: string, token: string) {
   const frontendUrl = process.env.FRONTEND_URL || "https://invenza-ten.vercel.app";
