@@ -72,9 +72,9 @@ export default function RegisterScreen() {
           style={StyleSheet.absoluteFillObject}
         />
         <View style={styles.successContent}>
-          <Text variant="displaySmall" style={styles.successIcon}>
+          {/* <Text variant="displaySmall" style={styles.successIcon}>
             ✓
-          </Text>
+          </Text> */}
           <Text variant="headlineMedium" style={styles.successTitle}>
             Registration Successful!
           </Text>
