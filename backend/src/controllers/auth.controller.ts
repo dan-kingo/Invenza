@@ -32,7 +32,15 @@ export class AuthController {
 
       const verificationToken = crypto.randomBytes(30).toString("hex");
 
-      const user = await User.create({
+     
+
+      if (email) { 
+        
+        sendVerificationEmail(email, verificationToken)
+  .catch(err => console.error("Email Error:", err));
+
+      }
+ const user = await User.create({
         name,
         email,
         phone,
@@ -42,9 +50,6 @@ export class AuthController {
         businessId: business._id,
         verificationToken
       });
-
-      if (email) await sendVerificationEmail(email, verificationToken);
-
       return res.status(201).json({
         message: "User registered. Please verify your email.",
         user
@@ -168,7 +173,9 @@ export class AuthController {
       expiresAt: new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
     });
 
-    await sendPasswordResetEmail(email, token);
+    sendPasswordResetEmail(email, token)
+  .catch(err => console.error("Email Error:", err));
+
 
     return res.json({ message: "Password reset link sent to email." });
   } catch (err) {
