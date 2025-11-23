@@ -28,6 +28,7 @@ export default function ForgotPasswordScreen() {
       await authService.forgotPassword(email);
       setSuccess(true);
     } catch (err: any) {
+      console.log(err)
       setError(err.response?.data?.error || 'Failed to send reset email');
     } finally {
       setLoading(false);

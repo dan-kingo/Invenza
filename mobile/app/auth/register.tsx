@@ -56,6 +56,7 @@ export default function RegisterScreen() {
         router.replace('/auth/login');
       }, 2000);
     } catch (err: any) {
+      console.log(err)
       setError(err.response?.data?.error || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
