@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import { DeviceToken } from "../models/DeviceToken.js";
 import { Notification, INotification } from "../models/Notification.js";
 import { IUser } from "../models/User.js";
-import { resend } from "./mail.service.js"; // Import Resend from your updated mail service
+import { sendEmailNotification } from "./mail.service.js"; // ✅ Now using Nodemailer
 
 const expo = new Expo();
 
@@ -124,19 +124,12 @@ export class NotificationService {
       // Generate email HTML based on notification type
       const emailHtml = this.generateNotificationEmail(notification);
 
-      const { data, error } = await resend.emails.send({
-        from: "Invenza <onboarding@resend.dev>",
-        to: user.email,
-        subject: `🔔 ${notification.title}`,
-        html: emailHtml,
-      });
-
-      if (error) {
-        console.error("Resend email notification error:", error);
-        return;
-      }
-
-      console.log("Email notification sent successfully:", data?.id);
+      // ✅ Using Nodemailer now
+      await sendEmailNotification(
+        user.email, 
+        `🔔 ${notification.title}`,
+        emailHtml
+      );
 
       if (!notification.sentVia.includes("email")) {
         notification.sentVia.push("email");
@@ -148,6 +141,8 @@ export class NotificationService {
   }
 
   private static generateNotificationEmail(notification: INotification): string {
+    // ... keep your existing generateNotificationEmail method unchanged
+    // (the same HTML template code you had before)
     const baseStyles = `
       <style>
         .notification-container { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; }
@@ -242,6 +237,7 @@ export class NotificationService {
     `;
   }
 
+  // ... keep the rest of your NotificationService methods unchanged
   static async sendBulkNotifications(
     users: IUser[],
     notificationData: Partial<INotification>
@@ -253,10 +249,7 @@ export class NotificationService {
           userId: user._id
         });
 
-        // Send push notification
         await this.sendPushNotification(user._id, notification);
-
-        // Send email notification
         await this.sendEmailNotification(user, notification);
 
       } catch (error) {
