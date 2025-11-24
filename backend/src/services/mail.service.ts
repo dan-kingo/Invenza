@@ -112,7 +112,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
   
   sendSmtpEmail.sender = {
     name: "Invenza",
-    email: "noreply@invenza.com"
+    email: "danieldejen23@gmail.com"
   };
   
   sendSmtpEmail.to = [{ email: email }];
@@ -136,7 +136,7 @@ export async function sendEmailNotification(email: string, subject: string, html
   sendSmtpEmail.htmlContent = html;
   sendSmtpEmail.sender = {
     name: "Invenza",
-    email: "noreply@invenza.com"
+    email: "danieldejen23@gmail.com"
   };
   sendSmtpEmail.to = [{ email: email }];
 
