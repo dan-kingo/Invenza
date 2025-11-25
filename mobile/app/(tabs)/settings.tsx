@@ -123,6 +123,32 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {user?.role === 'owner' && (
+          <View style={styles.section}>
+            <Text variant="titleSmall" style={styles.sectionTitle}>
+              STAFF MANAGEMENT
+            </Text>
+
+            <View style={styles.card}>
+              <List.Item
+                title="Manage Staff"
+                description="Add, edit, and manage staff members"
+                left={(props) => (
+                  <List.Icon
+                    {...props}
+                    icon={() => <MaterialCommunityIcons name="account-group" size={24} color={colors.primary} />}
+                  />
+                )}
+                right={(props) => <List.Icon {...props} icon="chevron-right" color={colors.textMuted} />}
+                onPress={() => router.push('/settings/staff-management')}
+                titleStyle={styles.listItemTitle}
+                descriptionStyle={styles.listItemDescription}
+                style={styles.listItem}
+              />
+            </View>
+          </View>
+        )}
+
         <View style={styles.section}>
           <Text variant="titleSmall" style={styles.sectionTitle}>
             PREFERENCES
