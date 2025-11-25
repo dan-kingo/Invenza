@@ -4,7 +4,7 @@
     "slug": "invenza-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/iicon.png",
+    "icon": "./assets/images/icon.png",
     "scheme": "invenza",
     "userInterfaceStyle": "automatic",
     "intentFilters": [

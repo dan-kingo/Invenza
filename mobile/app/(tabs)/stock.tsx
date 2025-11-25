@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     color: colors.accent,
-    fontSize: 11,
+    fontSize: 16,
     fontWeight: '600',
   },
   fab: {

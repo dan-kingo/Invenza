@@ -211,7 +211,7 @@ export default function EditStaffScreen() {
               }}
             />
 
-            <Text variant="bodyMedium" style={styles.passwordNote}>
+            {/* <Text variant="bodyMedium" style={styles.passwordNote}>
               Change Password (leave empty to keep current password)
             </Text>
 
@@ -271,7 +271,7 @@ export default function EditStaffScreen() {
               <HelperText type="error" visible={!!error} style={styles.errorText}>
                 {error}
               </HelperText>
-            ) : null}
+            ) : null} */}
 
             <Button
               mode="contained"
