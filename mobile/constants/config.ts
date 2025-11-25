@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  BASE_URL: 'https://invenza.onrender.com',
+  BASE_URL: 'http://localhost:5000',
   TIMEOUT: 30000,
   ENDPOINTS: {
     AUTH: {

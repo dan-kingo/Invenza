@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors } from '../../theme/colors';
 import itemService, { Item } from '../../services/item.service';
-
+import { useAuth } from '../../contexts/AuthContext';
 export default function StockScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -19,7 +19,7 @@ export default function StockScreen() {
   const [showLowStock, setShowLowStock] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
-
+  const { user } = useAuth();
   useEffect(() => {
     loadItems();
   }, []);
@@ -298,12 +298,12 @@ export default function StockScreen() {
         )}
       </ScrollView>
 
-      <FAB
+      {user?.role === 'owner' && <FAB
         icon="plus"
         style={styles.fab}
         color={colors.text}
         onPress={() => router.push('/stock/add-item')}
-      />
+      />}
     </View>
   );
 }

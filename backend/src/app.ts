@@ -14,7 +14,7 @@ import notificationRoutes from "./routes/notification.routes.js";
 import alertRoutes from "./routes/alert.routes.js";
 import reportRoutes from "./routes/report.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
-
+import ownerRoutes from "./routes/owner.routes.js";
 const app = express();
 
 // Middlewares
@@ -38,6 +38,7 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/alerts", alertRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/owner", ownerRoutes);
 // Error handler (should be last)
 app.use(errorHandler);
 

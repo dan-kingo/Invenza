@@ -7,7 +7,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors } from '../../theme/colors';
 import itemService, { Item } from '../../services/item.service';
-
+import { useAuth } from '../../contexts/AuthContext';
 export default function ItemDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
@@ -18,7 +18,7 @@ export default function ItemDetailScreen() {
   const [adjustAction, setAdjustAction] = useState<'added' | 'sold' | 'used' | 'adjusted'>('sold');
   const [adjustReason, setAdjustReason] = useState('');
   const [adjusting, setAdjusting] = useState(false);
-
+const { user } = useAuth();
   useEffect(() => {
     loadItem();
   }, [id]);
@@ -117,14 +117,14 @@ export default function ItemDetailScreen() {
         <Text variant="titleMedium" style={styles.headerTitle}>
           Item Details
         </Text>
-        <Button
+       {user?.role === 'owner' &&  <Button
           mode="text"
           onPress={() => router.push(`/stock/edit-item?id=${id}`)}
           textColor={colors.secondary}
           icon={() => <MaterialCommunityIcons name="pencil" size={20} color={colors.secondary} />}
         >
           Edit
-        </Button>
+        </Button>}
       </View>
 
       <ScrollView

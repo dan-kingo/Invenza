@@ -42,6 +42,10 @@ export default function BusinessScreen() {
   };
 
   const handleSave = async () => {
+    if(user!.role !== 'owner') {
+      Alert.alert('Error', 'You do not have permission to update business details');
+      return;
+    }
     if (!name.trim()) {
       Alert.alert('Error', 'Business name is required');
       return;
