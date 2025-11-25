@@ -51,7 +51,8 @@ class ItemService {
       }
 
       if (params?.tag) {
-        items = items.filter(item => item.tags.includes(params.tag));
+        const tag = params.tag;
+        items = items.filter(item => item.tags.includes(tag));
       }
 
       if (params?.lowStock) {

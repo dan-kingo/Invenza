@@ -10,9 +10,34 @@ import { StatusBar } from "expo-status-bar";
 import { Platform, StatusBar as RNStatusBar, View } from 'react-native';
 import { colors } from '../theme/colors';
 import { NotificationHandler } from "./components/NotificationHandler";
-
+import { AppState } from 'react-native';
+import syncManager from '../services/syncManager.service';
 function RootNavigator() {
   const router = useRouter();
+  useEffect(() => {
+    console.log('🚀 Initializing sync manager in root layout...');
+    
+    // Initialize sync manager
+    syncManager.init();
+
+    // Set up app state listener for foreground/background
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        console.log('📱 App came to foreground, checking sync...');
+        // Small delay to ensure network is ready
+        setTimeout(() => {
+          syncManager.syncPendingOperations();
+        }, 1000);
+      }
+    });
+
+    // Cleanup
+    return () => {
+      subscription?.remove();
+      syncManager.destroy();
+    };
+  }, []);
+
 
   useEffect(() => {
     // ensure system bars match app surface color
