@@ -6,6 +6,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { colors } from '../../theme/colors';
+import LogoWithText from '../components/LogoWithText';
 
 export default function AboutScreen() {
   const router = useRouter();
@@ -71,9 +72,7 @@ export default function AboutScreen() {
         >
           Back
         </Button>
-        <Text variant="headlineSmall" style={styles.headerTitle}>
-          About
-        </Text>
+       
         <View style={{ width: 80 }} />
       </View>
 
@@ -82,24 +81,8 @@ export default function AboutScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.logoContainer}>
-          <LinearGradient
-            colors={colors.gradient.primary as unknown as readonly [string, string, ...string[]]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.logoGradient}
-          >
-            <Text style={styles.logoText}>I</Text>
-          </LinearGradient>
-        </View>
+        <LogoWithText size={100} imageSource={require("../../assets/images/logo.png")} title='Invenza' />
 
-        <Text variant="displaySmall" style={styles.appName}>
-          Invenza
-        </Text>
-
-        <Text variant="bodyLarge" style={styles.tagline}>
-          Smart Inventory Management
-        </Text>
 
         <Card style={styles.versionCard}>
           <Card.Content style={styles.versionContent}>

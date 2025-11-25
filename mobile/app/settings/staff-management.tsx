@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, RefreshControl, Alert, TouchableOpacity } from 'react-native';
-import { Text, Button, Card, ActivityIndicator, FAB, IconButton, Chip, Menu } from 'react-native-paper';
+import React, { useState, useEffect, useRef } from 'react';
+import ActionSheet from 'react-native-actions-sheet';
+
+import { View, StyleSheet, ScrollView, RefreshControl, Alert } from 'react-native';
+import { Text, Button, Card, ActivityIndicator, FAB, IconButton, Chip } from 'react-native-paper';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -13,7 +15,8 @@ export default function StaffManagementScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [staff, setStaff] = useState<Staff[]>([]);
-  const [menuVisible, setMenuVisible] = useState<string | null>(null);
+  const [selectedMember, setSelectedMember] = useState<Staff | null>(null);
+  const actionSheetRef = useRef<any>(null);
 
   useEffect(() => {
     loadStaff();
@@ -37,12 +40,12 @@ export default function StaffManagementScreen() {
   };
 
   const handleEdit = (staffId: string) => {
-    setMenuVisible(null);
     router.push(`/settings/edit-staff?id=${staffId}`);
   };
 
   const handleSuspend = async (staffMember: Staff) => {
-    setMenuVisible(null);
+    // close any open UI state handled by action sheet
+    closeActionSheet();
 
     Alert.alert(
       'Suspend Staff Member',
@@ -67,7 +70,7 @@ export default function StaffManagementScreen() {
   };
 
   const handleUnsuspend = async (staffMember: Staff) => {
-    setMenuVisible(null);
+    closeActionSheet();
 
     try {
       await staffService.unsuspendUser(staffMember._id);
@@ -79,7 +82,7 @@ export default function StaffManagementScreen() {
   };
 
   const handleDelete = async (staffMember: Staff) => {
-    setMenuVisible(null);
+    closeActionSheet();
 
     Alert.alert(
       'Delete Staff Member',
@@ -101,6 +104,27 @@ export default function StaffManagementScreen() {
         },
       ]
     );
+  };
+
+  // Fixed menu toggle function
+  // (menu UI replaced with ActionSheet)
+
+  const openActionSheet = (member: Staff) => {
+    setSelectedMember(member);
+    try {
+      actionSheetRef.current?.setModalVisible(true);
+    } catch (e) {
+      actionSheetRef.current?.show?.();
+    }
+  };
+
+  const closeActionSheet = () => {
+    try {
+      actionSheetRef.current?.setModalVisible(false);
+    } catch (e) {
+      actionSheetRef.current?.hide?.();
+    }
+    setSelectedMember(null);
   };
 
   if (loading) {
@@ -206,44 +230,12 @@ export default function StaffManagementScreen() {
                         )}
                       </View>
                     </View>
-                    <Menu
-                      visible={menuVisible === member._id}
-                      onDismiss={() => setMenuVisible(null)}
-                      anchor={
-                        <IconButton
-                          icon="dots-vertical"
-                          size={24}
-                          iconColor={colors.text}
-                          onPress={() => setMenuVisible(member._id)}
-                        />
-                      }
-                      contentStyle={styles.menuContent}
-                    >
-                      <Menu.Item
-                        onPress={() => handleEdit(member._id)}
-                        title="Edit"
-                        leadingIcon="pencil"
-                      />
-                      {member.isSuspended ? (
-                        <Menu.Item
-                          onPress={() => handleUnsuspend(member)}
-                          title="Unsuspend"
-                          leadingIcon="account-check"
-                        />
-                      ) : (
-                        <Menu.Item
-                          onPress={() => handleSuspend(member)}
-                          title="Suspend"
-                          leadingIcon="account-cancel"
-                        />
-                      )}
-                      <Menu.Item
-                        onPress={() => handleDelete(member)}
-                        title="Delete"
-                        leadingIcon="delete"
-                        titleStyle={{ color: colors.error }}
-                      />
-                    </Menu>
+                    <IconButton
+                      icon="dots-vertical"
+                      size={24}
+                      iconColor={colors.text}
+                      onPress={() => openActionSheet(member)}
+                    />
                   </View>
                   {member.isSuspended && member.suspensionReason && (
                     <View style={styles.suspensionInfo}>
@@ -259,6 +251,42 @@ export default function StaffManagementScreen() {
           </View>
         )}
       </ScrollView>
+      <ActionSheet ref={actionSheetRef} containerStyle={{ padding: 16 , backgroundColor: colors.background }} >
+        <View style={{ paddingVertical: 8 }}>
+          <Text variant="titleMedium" style={{ marginBottom: 8 }}>
+            {selectedMember ? selectedMember.name : 'Staff' }
+          </Text>
+          <Text variant="bodySmall" style={{ marginBottom: 12, color: colors.textSecondary }}>
+            {selectedMember ? (selectedMember.email || selectedMember.phone) : ''}
+          </Text>
+
+          <Button style={{ display:'flex', gap : 24}} mode="text" onPress={() => { if (selectedMember) { handleEdit(selectedMember._id); } closeActionSheet(); }}>
+            <MaterialCommunityIcons name="pencil" size={16} color={colors.text} style={{ marginRight: 28 }} />
+            <Text>{" "}Edit</Text>
+          </Button>
+
+          {selectedMember && selectedMember.isSuspended ? (
+            <Button style={{ display:'flex', gap : 24}} mode="text" onPress={async () => { await handleUnsuspend(selectedMember); closeActionSheet(); }}>
+              <MaterialCommunityIcons name="account-outline" size={16} color={colors.text} style={{ marginRight: 28 }} />
+              <Text> {" "}Unsuspend</Text>
+            </Button>
+          ) : (
+            <Button style={{ display:'flex', gap : 24}} mode="text" onPress={async () => { if (selectedMember) { await handleSuspend(selectedMember); } closeActionSheet(); }}>
+              <MaterialCommunityIcons name="account-off" size={16} color={colors.text} style={{ marginRight: 28 }} />
+              <Text> {" "}Suspend</Text>
+            </Button>
+          )}
+
+          <Button style={{ display:'flex', gap : 24, backgroundColor: colors.error + '20'}} mode="text" textColor={colors.text} onPress={async () => { if (selectedMember) { await handleDelete(selectedMember); } closeActionSheet(); }}>
+            <MaterialCommunityIcons name="delete" size={16} color={colors.text} style={{ marginRight: 28 }} />
+            <Text> {" "}Delete</Text>
+          </Button>
+
+          <Button mode="text" onPress={closeActionSheet}>
+            Cancel
+          </Button>
+        </View>
+      </ActionSheet>
 
       <FAB
         icon="plus"
@@ -363,7 +391,7 @@ const styles = StyleSheet.create({
   },
   suspendedBadge: {
     backgroundColor: colors.error + '20',
-    height: 24,
+    height: 44,
   },
   suspendedBadgeText: {
     color: colors.error,
@@ -371,7 +399,7 @@ const styles = StyleSheet.create({
   },
   verifiedBadge: {
     backgroundColor: colors.success + '20',
-    height: 24,
+    height: 44, // Fixed height
   },
   verifiedBadgeText: {
     color: colors.success,
@@ -396,7 +424,7 @@ const styles = StyleSheet.create({
   fab: {
     position: 'absolute',
     right: 24,
-    bottom: 24,
+    bottom: 64,
     backgroundColor: colors.primary,
   },
 });

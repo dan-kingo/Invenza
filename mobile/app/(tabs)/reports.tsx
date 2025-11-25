@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Alert, Linking, Platform } from 'react-native';
-import { Text, Card, ActivityIndicator, SegmentedButtons, Chip, Button, IconButton, Menu } from 'react-native-paper';
+import { Text, Card, ActivityIndicator, SegmentedButtons, Chip, Button, IconButton } from 'react-native-paper';
+import ActionSheet from 'react-native-actions-sheet';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StatusBar } from 'expo-status-bar';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -22,8 +23,24 @@ export default function ReportsScreen() {
   const [lowStock, setLowStock] = useState<LowStockItem[]>([]);
   const [topSelling, setTopSelling] = useState<TopSellingItem[]>([]);
   const [categoryBreakdown, setCategoryBreakdown] = useState<CategoryBreakdown[]>([]);
-  const [exportMenuVisible, setExportMenuVisible] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const exportSheetRef = useRef<any>(null);
+
+  const openExportSheet = () => {
+    try {
+      exportSheetRef.current?.setModalVisible(true);
+    } catch (e) {
+      exportSheetRef.current?.show?.();
+    }
+  };
+
+  const closeExportSheet = () => {
+    try {
+      exportSheetRef.current?.setModalVisible(false);
+    } catch (e) {
+      exportSheetRef.current?.hide?.();
+    }
+  };
 
   useEffect(() => {
     loadReports();
@@ -56,7 +73,8 @@ export default function ReportsScreen() {
   };
 
   const handleExport = async (format: 'csv' | 'pdf') => {
-    setExportMenuVisible(false);
+    // close menu sheet if open
+    try { closeExportSheet(); } catch (e) {}
     setExporting(true);
 
     try {
@@ -372,33 +390,13 @@ export default function ReportsScreen() {
           Reports
         </Text>
         {(reportType === 'stock-summary' || reportType === 'low-stock' || reportType === 'top-selling') && (
-          <Menu
-            visible={exportMenuVisible}
-            onDismiss={() => setExportMenuVisible(false)}
-            anchor={
-              <IconButton
-                icon="download"
-                iconColor={colors.secondary}
-                size={24}
-                onPress={() => setExportMenuVisible(true)}
-                disabled={exporting}
-              />
-            }
-            contentStyle={styles.menuContent}
-          >
-            <Menu.Item
-              onPress={() => handleExport('csv')}
-              title="Export as CSV"
-              leadingIcon="file-delimited"
-              disabled={exporting}
-            />
-            <Menu.Item
-              onPress={() => handleExport('pdf')}
-              title="Export as PDF"
-              leadingIcon="file-pdf-box"
-              disabled={exporting}
-            />
-          </Menu>
+          <IconButton
+            icon="download"
+            iconColor={colors.secondary}
+            size={24}
+            onPress={openExportSheet}
+            disabled={exporting}
+          />
         )}
       </View>
 
@@ -422,6 +420,27 @@ export default function ReportsScreen() {
         />
       </View>
 
+      <ActionSheet ref={exportSheetRef} containerStyle={{ padding: 12, backgroundColor: colors.background }}>
+        <View style={{ paddingVertical: 8 }}>
+          <Text variant="titleMedium" style={{ marginBottom: 8 }}>Export Report</Text>
+          <Text variant="bodySmall" style={{ marginBottom: 12, color: colors.textSecondary }}>
+            Choose a format to download the current report
+          </Text>
+
+          <Button mode="text" onPress={async () => { await handleExport('csv'); }} disabled={exporting}>
+            Export as CSV
+          </Button>
+
+          <Button mode="text" onPress={async () => { await handleExport('pdf'); }} disabled={exporting}>
+            Export as PDF
+          </Button>
+
+          <Button mode="text" onPress={closeExportSheet}>
+            Cancel
+          </Button>
+        </View>
+      </ActionSheet>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -440,6 +459,8 @@ export default function ReportsScreen() {
         {reportType === 'top-selling' && renderTopSelling()}
         {reportType === 'category' && renderCategoryBreakdown()}
       </ScrollView>
+      {/* ensure sheet is closed when export finishes */}
+      {exporting === false && <></>}
     </View>
   );
 }
