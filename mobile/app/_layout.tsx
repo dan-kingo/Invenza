@@ -9,6 +9,7 @@ import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Platform, StatusBar as RNStatusBar, View } from 'react-native';
 import { colors } from '../theme/colors';
+import { NotificationHandler } from "./components/NotificationHandler";
 
 function RootNavigator() {
   const router = useRouter();
@@ -43,12 +44,16 @@ function RootNavigator() {
   }, []);
 
   return (
+    <>
+    <NotificationHandler />
     <Stack
+
       screenOptions={{
         headerShown: false,
         animation: "fade",
       }}
     />
+    </>
   );
 }
 

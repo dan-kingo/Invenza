@@ -42,55 +42,6 @@ export default function SyncStatusScreen() {
     loadStatus();
   };
 
-  const handleDeduplicate = async () => {
-    Alert.alert(
-      'Deduplicate Operations',
-      'This will remove duplicate sync operations. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Deduplicate',
-          onPress: async () => {
-            setDeduplicating(true);
-            try {
-              await syncService.deduplicate();
-              Alert.alert('Success', 'Duplicate operations removed');
-              loadStatus();
-            } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.error || 'Failed to deduplicate');
-            } finally {
-              setDeduplicating(false);
-            }
-          },
-        },
-      ]
-    );
-  };
-
-  const handleCleanup = async () => {
-    Alert.alert(
-      'Cleanup Old Operations',
-      'This will remove sync operations older than 30 days. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Cleanup',
-          onPress: async () => {
-            setCleaning(true);
-            try {
-              await syncService.cleanup(30);
-              Alert.alert('Success', 'Old operations cleaned up');
-              loadStatus();
-            } catch (error: any) {
-              Alert.alert('Error', error.response?.data?.error || 'Failed to cleanup');
-            } finally {
-              setCleaning(false);
-            }
-          },
-        },
-      ]
-    );
-  };
 
   if (loading) {
     return (
@@ -208,31 +159,6 @@ export default function SyncStatusScreen() {
           )}
         </View>
 
-        <View style={styles.actions}>
-          <Button
-            mode="outlined"
-            onPress={handleDeduplicate}
-            loading={deduplicating}
-            disabled={deduplicating || cleaning}
-            style={styles.actionButton}
-            labelStyle={styles.actionButtonLabel}
-            icon={() => <MaterialCommunityIcons name="content-duplicate" size={20} color={colors.secondary} />}
-          >
-            Deduplicate Operations
-          </Button>
-
-          <Button
-            mode="outlined"
-            onPress={handleCleanup}
-            loading={cleaning}
-            disabled={deduplicating || cleaning}
-            style={styles.actionButton}
-            labelStyle={styles.actionButtonLabel}
-            icon={() => <MaterialCommunityIcons name="broom" size={20} color={colors.secondary} />}
-          >
-            Cleanup Old Data
-          </Button>
-        </View>
       </ScrollView>
     </View>
   );

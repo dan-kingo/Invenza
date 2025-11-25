@@ -10,6 +10,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import itemService from '../../services/item.service';
 import notificationService from '../../services/notification.service';
 import alertService from '../../services/alert.service';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface DashboardStats {
   totalItems: number;
@@ -32,10 +33,18 @@ export default function HomeScreen() {
   const [recentItems, setRecentItems] = useState<any[]>([]);
   const [lowStockAlerts, setLowStockAlerts] = useState<any[]>([]);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
-
+const { expoPushToken, notification } = useNotifications();
   useEffect(() => {
     loadDashboardData();
   }, []);
+
+   useEffect(() => {
+    if (notification) {
+      console.log('New notification received, refreshing data...');
+      loadDashboardData();
+    }
+  }, [notification]);
+
 
   const loadDashboardData = async () => {
     try {
