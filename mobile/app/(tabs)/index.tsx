@@ -190,7 +190,7 @@ const { expoPushToken, notification } = useNotifications();
             <ActionCard
               icon="plus-circle"
               label="Add Item"
-              onPress={() => router.push('/(tabs)/stock')}
+              onPress={() => router.push('/stock/add-item')}
               gradient={[colors.secondary, colors.primary]}
             />
             <ActionCard
