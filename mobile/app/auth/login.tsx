@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Text, TextInput, Button, HelperText } from 'react-native-paper';
 import LogoWithText from '../components/LogoWithText';
@@ -17,6 +17,10 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+  fetch('https://invenza.onrender.com/health').catch(() => {});
+}, []);
 
   const handleLogin = async () => {
     setError('');
